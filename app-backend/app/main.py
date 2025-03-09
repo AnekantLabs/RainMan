@@ -1,7 +1,7 @@
 # app/main.py
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from app.db import connect_to_mongo, close_mongo_connection
+from core.db_session import connect_to_mongo, close_mongo_connection
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

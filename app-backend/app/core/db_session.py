@@ -1,6 +1,6 @@
 # app/database.py
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.config import MONGO_URI, DATABASE_NAME
+from config import MONGO_URI, DATABASE_NAME
 
 client = None
 db = None

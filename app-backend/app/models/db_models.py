@@ -5,7 +5,7 @@ from sqlalchemy import Column, String, Boolean, Integer, Float, DateTime
 from sqlalchemy.sql import func
 from app.core.db_session import Base
 
-class User(Base):
+class Account(Base):
     __tablename__ = "accounts"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)

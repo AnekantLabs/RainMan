@@ -1,13 +1,13 @@
 
 # controller for account routes
 from sqlalchemy.orm import Session
-from app.models.db_models import User
-from app.schemas.pydantic_schemas import UserCreate
+from app.models.db_models import Account
+from app.schemas.pydantic_schemas import AccountCreate
 
-def create_user(db: Session, user_data: UserCreate):
+def create_user(db: Session, account_data: AccountCreate):
     """Handles user creation logic."""
-    new_user = User(**user_data.dict())
-    db.add(new_user)
+    new_account = Account(**account_data.dict())
+    db.add(new_account)
     db.commit()
-    db.refresh(new_user)
-    return new_user
+    db.refresh(new_account)
+    return new_account

@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
-class UserBase(BaseModel):
+class AccountBase(BaseModel):
     account_name: str
     role: str
     api_key: str
@@ -11,7 +11,7 @@ class UserBase(BaseModel):
     leverage: float
     is_activate: Optional[bool] = True
 
-class UserCreate(BaseModel):
+class AccountCreate(BaseModel):
     account_name: str
     role: str
     api_key: str
@@ -20,7 +20,7 @@ class UserCreate(BaseModel):
     leverage: float
     is_activate: Optional[bool] = True
 
-class UserResponse(BaseModel):
+class AccountResponse(BaseModel):
     id: int
     account_name: str
     role: str

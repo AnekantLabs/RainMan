@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.db_models import Account
 from app.schemas.pydantic_schemas import AccountCreate
 
-def create_user(db: Session, account_data: AccountCreate):
+def create_account(db: Session, account_data: AccountCreate):
     """Handles user creation logic."""
     new_account = Account(**account_data.dict())
     db.add(new_account)

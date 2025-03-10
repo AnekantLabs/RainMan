@@ -1,21 +1,23 @@
-# app/database.py
-from motor.motor_asyncio import AsyncIOMotorClient
-from config import MONGO_URI, DATABASE_NAME
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from app.core.config import DATABASE_URL
 
-client = None
-db = None
+# Create the database engine
 
-async def connect_to_mongo():
-    global client, db
+print(DATABASE_URL)
+engine = create_engine(DATABASE_URL)
+
+# Create a session factory
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for models
+Base = declarative_base()
+
+# Dependency for getting the database session
+def get_db():
+    db = SessionLocal()
     try:
-        client = AsyncIOMotorClient(MONGO_URI)
-        db = client[DATABASE_NAME]
-        print("✅ Connected to MongoDB")
-    except Exception as e:
-        print(f"❌ Error connecting to MongoDB: {e}")
-
-async def close_mongo_connection():
-    global client
-    if client:
-        client.close()
-        print("❌ MongoDB connection closed")
+        yield db
+    finally:
+        db.close()

@@ -1,9 +1,14 @@
-# app/config.py
-import os
-from dotenv import load_dotenv
+from pydantic import BaseSettings
 
-# Load environment variables from .env file
-load_dotenv()
+class Settings(BaseSettings):
+    PROJECT_NAME: str
+    API_V1_STR: str
+    DATABASE_URL: str
+    SECRET_KEY: str
+    ENVIRONMENT: str
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-DATABASE_NAME = os.getenv("DATABASE_NAME", "fastapi_db")
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
+settings = Settings()

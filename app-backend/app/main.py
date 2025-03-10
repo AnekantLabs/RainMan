@@ -2,16 +2,16 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.core.db_session import engine, Base, get_db
-from models import db_models
+from app.models import db_models
 # Import your routers here
-from api.v1 import accounts
+from app.api.v1 import accounts
 
 app = FastAPI()
 
 # Create tables in the database
 Base.metadata.create_all(bind=engine)
 
-app.include_router(accounts.router, prefix="/api/v1")
+app.include_router(accounts.acc_router, prefix="/api/v1")
 
 @app.on_event("startup")
 async def startup_db():

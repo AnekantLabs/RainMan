@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -28,7 +28,7 @@ class UserResponse(BaseModel):
     leverage: int
     is_activate: Optional[bool] = True
     created_at: datetime
-    last_updated: datetime
+    last_updated: datetime | None = Field(default=None) 
 
     class Config:
         from_attributes = True  # To allow ORM conversion

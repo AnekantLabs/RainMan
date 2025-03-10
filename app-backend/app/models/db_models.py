@@ -3,7 +3,7 @@
 
 from sqlalchemy import Column, String, Boolean, Integer, Float, DateTime
 from sqlalchemy.sql import func
-from core.db_session import Base
+from app.core.db_session import Base
 
 class User(Base):
     __tablename__ = "accounts"

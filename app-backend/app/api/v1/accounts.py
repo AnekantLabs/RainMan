@@ -7,6 +7,7 @@ from app.models.db_models import Account
 
 acc_router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
+# route to create an account
 @acc_router.post("/create-account", response_model=AccountResponse)
 def create_new_account(account: AccountCreate, db: Session = Depends(get_db)):
     """Creates a new account and stores it in the database."""
@@ -15,3 +16,13 @@ def create_new_account(account: AccountCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Account name already exists")
     
     return create_account(db, account)
+
+
+# route to get all the accounts
+@acc_router.get("/get-accounts", response_model=list[AccountResponse])
+def get_all_accounts(db: Session = Depends(get_db)):
+    """Retrieves all accounts from the database and returns them as a list."""
+    accounts = db.query(Account).all()
+    if not accounts:
+        raise HTTPException(status_code=404, detail="No accounts found")
+    return accounts

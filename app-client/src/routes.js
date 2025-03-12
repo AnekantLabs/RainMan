@@ -46,6 +46,7 @@ import SignUp from "layouts/authentication/sign-up";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
+import Accounts from "layouts/accounts";
 
 const routes = [
   {
@@ -103,6 +104,14 @@ const routes = [
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
+  },
+  {
+    type: "collapse",
+    name: "Accounts",
+    key: "accounts",
+    icon: <Icon fontSize="small">account_circle</Icon>,
+    route: "/accounts",
+    component: <Accounts />,
   },
 ];
 

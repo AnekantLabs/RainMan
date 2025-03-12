@@ -5,8 +5,18 @@ from app.core.db_session import engine, Base, get_db
 from app.models import db_models
 # Import your routers here
 from app.api.v1 import accounts
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# allow to access frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Create tables in the database
 Base.metadata.create_all(bind=engine)

@@ -1,6 +1,6 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* Rainman React - v2.2.0
 =========================================================
 
 * Product Page: https://www.creative-tim.com/product/material-dashboard-react
@@ -14,15 +14,15 @@ Coded by www.creative-tim.com
 */
 
 /**
- * The base box-shadow styles for the Material Dashboard 2 React.
+ * The base box-shadow styles for the Rainman React.
  * You can add new box-shadow using this file.
- * You can customized the box-shadow for the entire Material Dashboard 2 React using thie file.
+ * You can customized the box-shadow for the entire Rainman React using thie file.
  */
 
-// Material Dashboard 2 React Base Styles
+// Rainman React Base Styles
 import colors from "assets/theme/base/colors";
 
-// Material Dashboard 2 React Helper Functions
+// Rainman React Helper Functions
 import boxShadow from "assets/theme/functions/boxShadow";
 
 const { black, white, tabs, coloredShadows } = colors;

@@ -1,16 +1,38 @@
 # app/main.py
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from app.db import connect_to_mongo, close_mongo_connection
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from app.core.db_session import engine, Base, get_db
+from app.models import db_models
+# Import your routers here
+from app.api.v1 import accounts
+from fastapi.middleware.cors import CORSMiddleware
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await connect_to_mongo()  # Connect to MongoDB
-    yield  # The application runs while this is active
-    await close_mongo_connection()  # Disconnect MongoDB when shutting down
+app = FastAPI()
 
-app = FastAPI(lifespan=lifespan)
+# allow to access frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Create tables in the database
+Base.metadata.create_all(bind=engine)
+
+app.include_router(accounts.acc_router, prefix="/api/v1")
+
+@app.on_event("startup")
+async def startup_db():
+    """Ensures that the database is connected when the server starts"""
+    try:
+        with engine.connect() as connection:
+            print("✅ Successfully connected to the PostgreSQL database!")
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+
+# Example route to test database connection
 @app.get("/")
-async def root():
-    return {"message": "FastAPI with MongoDB is running 🚀"}
+def read_root(db: Session = Depends(get_db)):
+    return {"message": "PostgreSQL is connected!"}

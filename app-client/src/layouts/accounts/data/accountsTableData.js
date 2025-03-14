@@ -22,8 +22,11 @@ export default function accountsTableData(rows, handleOpenDrawer) {
                 <MDBadge badgeContent="Inactive" color="dark" variant="gradient" size="sm" />
             ),
             action: (
-                <Button onClick={() => handleOpenDrawer(account)}>Edit</Button>
+                <Button variant="contained" color="primary" onClick={() => handleOpenDrawer(account, false)}>
+                    Edit
+                </Button>
             ),
         })),
+        
     };
 }

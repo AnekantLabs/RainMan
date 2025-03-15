@@ -19,6 +19,15 @@ class AccountCreate(BaseModel):
     risk_percentage: float
     leverage: float
     is_activate: Optional[bool] = True
+    
+class AccountUpdate(BaseModel):
+    account_name: Optional[str] = None
+    role: Optional[str] = None
+    api_key: Optional[str] = None
+    api_secret: Optional[str] = None
+    risk_percentage: Optional[float] = None
+    leverage: Optional[float] = None
+    is_activate: Optional[bool] = True
 
 class AccountResponse(BaseModel):
     id: int

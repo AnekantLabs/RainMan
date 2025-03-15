@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.pydantic_schemas import AccountCreate, AccountResponse
-from app.api.dependencies.accounts import create_account
+from app.schemas.pydantic_schemas import AccountCreate, AccountResponse, AccountUpdate
+from app.api.dependencies.accounts import create_account, update_account
 from app.core.db_session import get_db
 from app.models.db_models import Account
 
@@ -26,3 +26,8 @@ def get_all_accounts(db: Session = Depends(get_db)):
     if not accounts:
         raise HTTPException(status_code=404, detail="No accounts found")
     return accounts
+
+# route to update details of the account
+@acc_router.put("/update-account/{acc_id}", response_model=AccountResponse)
+def update_acc_details(acc_id: int, acc_update : AccountUpdate, db: Session = Depends(get_db)):
+    return update_account(db, acc_id, acc_update)

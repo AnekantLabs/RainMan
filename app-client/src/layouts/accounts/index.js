@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import Drawer from "@mui/material/Drawer";
+// import Drawer from "@mui/material/Drawer";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
+import Modal from "@mui/material/Modal";
 
 // Material Dashboard Components
-import MDBadge from "components/MDBadge";
+// import MDBadge from "components/MDBadge";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -20,6 +21,7 @@ import DataTable from "examples/Tables/DataTable";
 // Import Data Function
 import accountsTableData from "layouts/accounts/data/accountsTableData";
 import axiosInstance from "utils/axios";
+import { MenuItem } from "@mui/material";
 
 function Accounts() {
     //   const [rows, setRows] = useState([
@@ -30,7 +32,7 @@ function Accounts() {
     //       api_secret: "eiwheownevoiwneviownevowevni",
     //       risk_percentage: "1%",
     //       leverage: "2%",
-    //       is_activate: <MDBadge badgeContent="Active" color="success" variant="gradient" size="sm" />,
+    //       is_activate:false,
     //     },
     //     {
     //       account_name: "subaccount2",
@@ -39,7 +41,7 @@ function Accounts() {
     //       api_secret: "dkjfhsdjhf7328hdsf823h",
     //       risk_percentage: "2%",
     //       leverage: "5%",
-    //       is_activate: <MDBadge badgeContent="Inactive" color="dark" variant="gradient" size="sm" />,
+    //       is_activate:true,
     //     },
     //   ]);
 
@@ -52,22 +54,24 @@ function Accounts() {
 
     // fetch the data from the backend when the component is rendered
     useEffect(() => {
-
         const fetchAccounts = async () => {
             try {
-                const response = await axiosInstance.get('/accounts/get-accounts')
-                setRows(response.data)
-                console.log(response.data)
+                const response = await axiosInstance.get('/accounts/get-accounts');
+                setRows(response.data);
             } catch (error) {
-                console.log(`Error fetching Accounts ${error}`)
+                console.log(`Error fetching Accounts ${error}`);
             }
-        }
+        };
 
-        fetchAccounts()
-    }, [])      // keep the dependency array empty, only load when the whole component renders
+        fetchAccounts();
+    }, []);      // keep the dependency array empty, only load when the whole component renders
 
 
     const handleOpenDrawer = (account = null, isNew = false) => {
+
+        // console.log(⁠ Selected Account Id: ${account.id} ${JSON.stringify(account)} ⁠);
+
+        // selected account is the account to be edited
         setSelectedAccount(account);
         setEditedAccount(
             account
@@ -90,14 +94,26 @@ function Accounts() {
         setDrawerOpen(false);
     };
 
-    const handleSave = () => {
-        if (isNew) {
-            setRows([...rows, { ...editedAccount }]);
-        } else {
-            setRows(rows.map((acc) => (acc.account_name === selectedAccount.account_name ? editedAccount : acc)));
+    const handleSave = async () => {
+        try {
+            if (isNew) {
+                // Add a new account via API
+                const response = await axiosInstance.post('/accounts/create-account', editedAccount);
+                console.log(`New Account: ${JSON.stringify(editedAccount)}`);
+                setRows([...rows, response.data]);  // Update table with new data
+            } else {
+                // Update an existing account
+                await axiosInstance.put(`/accounts/update-account/${selectedAccount.id}`, editedAccount);
+                console.log(`Edited Account: ${JSON.stringify(editedAccount)}`);
+
+                setRows(rows.map((acc) => (acc.id === selectedAccount.id ? editedAccount : acc)));
+            }
+            setDrawerOpen(false);
+        } catch (error) {
+            console.error("Error saving account:", error);
         }
-        setDrawerOpen(false);
     };
+
 
     const tableData = accountsTableData(rows, handleOpenDrawer);
 
@@ -113,8 +129,23 @@ function Accounts() {
                                     Accounts Table
                                 </MDTypography>
                             </MDBox>
-                            <MDBox pt={3}>
-                                <DataTable table={tableData} isSorted={false} entriesPerPage={false} showTotalEntries={false} noEndBorder />
+                            <MDBox pt={3} sx={{ overflowX: "hidden", width: "100%" }}>
+                                <DataTable
+                                    table={tableData}
+                                    isSorted={false}
+                                    entriesPerPage={false}
+                                    showTotalEntries={false}
+                                    noEndBorder
+                                    sx={{
+                                        width: "100%",
+                                        "& .MuiTable-root": { tableLayout: "fixed" },
+                                        "& .MuiTableCell-root": {
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis"
+                                        },
+                                    }}
+                                />
                             </MDBox>
                         </Card>
                     </Grid>
@@ -126,28 +157,115 @@ function Accounts() {
             <Footer />
 
             {/* Side Drawer for Account Details */}
-            <Drawer anchor="right" open={drawerOpen} onClose={handleCloseDrawer}>
-                <MDBox width="400px" p={3}>
-                    <MDBox display="flex" justifyContent="space-between" alignItems="center">
-                        <MDTypography variant="h5">{isNew ? "Add New Account" : "Edit Account"}</MDTypography>
+            <Modal open={drawerOpen} onClose={handleCloseDrawer}>
+                <MDBox
+                    sx={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: { xs: "90vw", sm: "500px" },
+                        bgcolor: "background.default",
+                        borderRadius: "10px",
+                        boxShadow: 24,
+                        p: 4,
+                        color: "text.primary",
+                    }}
+                >
+                    <MDBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                        <MDTypography variant="h5">
+                            {isNew ? "Add New Account" : "Edit Account"}
+                        </MDTypography>
                         <IconButton onClick={handleCloseDrawer}>
                             <CloseIcon />
                         </IconButton>
                     </MDBox>
 
-                    <Grid container spacing={2} mt={2}>
-                        {Object.keys(editedAccount).map((key) => (
-                            <Grid item xs={12} key={key}>
-                                <TextField fullWidth label={key.replace("_", " ")} value={editedAccount[key] || ""} onChange={(e) => setEditedAccount({ ...editedAccount, [key]: e.target.value })} />
-                            </Grid>
-                        ))}
-                    </Grid>
+                    <Grid container spacing={2}>
+    {Object.keys(editedAccount)
+        .filter((key) => !["id", "created_at", "last_updated"].includes(key))
+        .map((key) => (
+            <Grid item xs={12} key={key}>
+                {/* Dropdown for "is_activate" */}
+                {key === "is_activate" ? (
+                    <TextField
+                        select
+                        fullWidth
+                        label="Is Activate"
+                        value={String(editedAccount[key]) || "false"} 
+                        onChange={(e) =>
+                            setEditedAccount({ ...editedAccount, [key]: e.target.value })
+                        }
+                        sx={{
+                            bgcolor: "background.paper",
+                            borderRadius: "5px",
+                            height: "50px", 
+                            "& .MuiInputBase-root": { 
+                                height: "50px", 
+                                padding: "0 14px", 
+                            },
+                        }}
+                    >
+                        <MenuItem value="true">True</MenuItem>
+                        <MenuItem value="false">False</MenuItem>
+                    </TextField>
+                ) : key === "role" ? (  
+                    // Dropdown for "role" (Main & Sub Account)
+                    <TextField
+                        select
+                        fullWidth
+                        label="Role"
+                        value={editedAccount[key] || "main"} // Default to "main"
+                        onChange={(e) =>
+                            setEditedAccount({ ...editedAccount, [key]: e.target.value })
+                        }
+                        sx={{
+                            bgcolor: "background.paper",
+                            borderRadius: "5px",
+                            height: "50px",
+                            "& .MuiInputBase-root": { 
+                                height: "50px",
+                                padding: "0 14px",
+                            },
+                        }}
+                    >
+                        <MenuItem value="main">Main Account</MenuItem>
+                        <MenuItem value="sub account">Sub Account</MenuItem>
+                    </TextField>
+                ) : (
+                    // Default input for all other fields
+                    <TextField
+                        fullWidth
+                        label={key.replace("_", " ")}
+                        value={editedAccount[key] || ""}
+                        onChange={(e) =>
+                            setEditedAccount({ ...editedAccount, [key]: e.target.value })
+                        }
+                        sx={{
+                            height: "50px",
+                            "& .MuiInputBase-root": { 
+                                height: "50px",
+                                padding: "0 14px",
+                            },
+                        }}
+                    />
+                )}
+            </Grid>
+        ))}
+</Grid>
 
-                    <Button variant="contained" color="primary" sx={{ marginTop: 2 }} fullWidth onClick={handleSave}>
+
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 3, width: "100%" }}
+                        onClick={handleSave}
+                    >
                         {isNew ? "Add Account" : "Save Changes"}
                     </Button>
                 </MDBox>
-            </Drawer>
+            </Modal>
+
         </DashboardLayout>
     );
 }

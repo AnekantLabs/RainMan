@@ -1,6 +1,6 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* Rainman React - v2.2.0
 =========================================================
 
 * Product Page: https://www.creative-tim.com/product/material-dashboard-react
@@ -14,7 +14,7 @@ Coded by www.creative-tim.com
 */
 
 /** 
-  All of the routes for the Material Dashboard 2 React are added here,
+  All of the routes for the Rainman React are added here,
   You can add a new route, customize the routes and delete the routes here.
 
   Once you add a new route on this file it will be visible automatically on
@@ -35,7 +35,7 @@ Coded by www.creative-tim.com
   10. The `component` key is used to store the component of its route.
 */
 
-// Material Dashboard 2 React layouts
+// Rainman React layouts
 import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import Billing from "layouts/billing";
@@ -47,6 +47,10 @@ import SignUp from "layouts/authentication/sign-up";
 // @mui icons
 import Icon from "@mui/material/Icon";
 import Accounts from "layouts/accounts";
+
+const disableBilling = true;
+const disableNotifications = true;
+const disableTables = true;
 
 const routes = [
   {
@@ -63,7 +67,7 @@ const routes = [
     key: "tables",
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/tables",
-    component: <Tables />,
+    component: disableTables ? null : <Tables />,
   },
   {
     type: "collapse",
@@ -71,7 +75,7 @@ const routes = [
     key: "billing",
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/billing",
-    component: <Billing />,
+    component: disableBilling ? null : <Billing />,
   },
   {
     type: "collapse",
@@ -79,7 +83,7 @@ const routes = [
     key: "notifications",
     icon: <Icon fontSize="small">notifications</Icon>,
     route: "/notifications",
-    component: <Notifications />,
+    component: disableNotifications ? null : <Notifications />,
   },
   {
     type: "collapse",

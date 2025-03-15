@@ -1,6 +1,6 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* Rainman React - v2.2.0
 =========================================================
 
 * Product Page: https://www.creative-tim.com/product/material-dashboard-react
@@ -18,14 +18,14 @@ import PropTypes from "prop-types";
 
 // @mui material components
 import Container from "@mui/material/Container";
-import Link from "@mui/material/Link";
-import Icon from "@mui/material/Icon";
+// import Link from "@mui/material/Link";
+// import Icon from "@mui/material/Icon";
 
-// Material Dashboard 2 React components
+// Rainman React components
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
+// import MDTypography from "components/MDTypography";
 
-// Material Dashboard 2 React base styles
+// Rainman React base styles
 import typography from "assets/theme/base/typography";
 
 function Footer({ light }) {
@@ -50,7 +50,7 @@ function Footer({ light }) {
             color={light ? "white" : "text"}
             fontSize={size.sm}
           >
-            &copy; {new Date().getFullYear()}, made with
+            {/* &copy; {new Date().getFullYear()}, made with
             <MDBox fontSize={size.md} color={light ? "white" : "dark"} mb={-0.5} mx={0.25}>
               <Icon color="inherit" fontSize="inherit">
                 favorite
@@ -62,9 +62,9 @@ function Footer({ light }) {
                 &nbsp;Creative Tim&nbsp;
               </MDTypography>
             </Link>
-            for a better web.
+            for a better web. */}
           </MDBox>
-          <MDBox
+          {/* <MDBox
             component="ul"
             sx={({ breakpoints }) => ({
               display: "flex",
@@ -125,7 +125,7 @@ function Footer({ light }) {
                 </MDTypography>
               </Link>
             </MDBox>
-          </MDBox>
+          </MDBox> */}
         </MDBox>
       </Container>
     </MDBox>

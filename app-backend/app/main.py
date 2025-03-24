@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.db_session import engine, Base, get_db
 from app.models import db_models
 # Import your routers here
-from app.api.v1 import accounts
+from app.api.v1 import accounts, alerts
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -12,7 +12,7 @@ app = FastAPI()
 # allow to access frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React frontend URL
+    allow_origins=["*"],  # React frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,6 +22,7 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 app.include_router(accounts.acc_router, prefix="/api/v1")
+app.include_router(alerts.alert_router, prefix="/api/v1")
 
 @app.on_event("startup")
 async def startup_db():

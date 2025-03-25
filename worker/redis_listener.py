@@ -16,7 +16,11 @@ def listen_to_queue():
             print(f"Task received from the queue: {queue_data}")
             
             # later you can process the task here
+            # process_queue_task()
             # for now, just print the task
         except Exception as e:
             print(f"Error receiving task from the queue: {e}")
-        time.sleep(1)  # Prevents excessive CPU usage
+        time.sleep(2)  # Prevents excessive CPU usage
+
+if __name__ == "__main__":
+    listen_to_queue()

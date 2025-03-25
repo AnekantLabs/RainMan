@@ -4,3 +4,4 @@ node_modules/
 
 app/__pycache__/
 myenv/
+venv/

@@ -20,6 +20,7 @@ def update_account(db: Session, acc_id: int, account_update: AccountUpdate):
 
     # update the fields
     account.account_name = account_update.account_name
+    account.role = account_update.role
     account.api_key = account_update.api_key
     account.api_secret = account_update.api_secret
     account.risk_percentage = account_update.risk_percentage

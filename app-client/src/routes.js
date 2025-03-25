@@ -47,6 +47,7 @@ import SignUp from "layouts/authentication/sign-up";
 // @mui icons
 import Icon from "@mui/material/Icon";
 import Accounts from "layouts/accounts";
+import Logs from "layouts/logs";
 
 const disableBilling = true;
 const disableNotifications = true;
@@ -116,6 +117,14 @@ const routes = [
     icon: <Icon fontSize="small">account_circle</Icon>,
     route: "/accounts",
     component: <Accounts />,
+  },
+  {
+    type: "collapse",
+    name: "Logs",
+    key: "logs",
+    icon: <Icon fontSize="small">history</Icon>,
+    route: "/logs",
+    component: <Logs />,
   },
 ];
 

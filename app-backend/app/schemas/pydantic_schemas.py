@@ -43,3 +43,19 @@ class AccountResponse(BaseModel):
 
     class Config:
         from_attributes = True  # To allow ORM conversion
+        
+# schema for alert from tradingview
+class TradingViewAlert(BaseModel):
+    account: str
+    action: str
+    symbol: str
+    side: str = None  # Only for close/trailing stop loss
+    leverage: int = None
+    entry_price: float = None
+    stop_loss: float = None
+    stop_loss_percentage: float = None
+    tps: list[float] = []
+    tp_sizes: list[float] = []
+    risk_percentage: float = None
+    commission_percentage: float = None
+    margin_type: str = None

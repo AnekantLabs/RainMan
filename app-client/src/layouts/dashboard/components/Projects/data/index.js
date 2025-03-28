@@ -71,7 +71,7 @@ export default function data() {
 
   return {
     columns: [
-      { Header: "companies", accessor: "companies", width: "45%", align: "left" },
+      { Header: "Account", accessor: "companies", width: "45%", align: "left" },
       { Header: "members", accessor: "members", width: "10%", align: "left" },
       { Header: "budget", accessor: "budget", align: "center" },
       { Header: "completion", accessor: "completion", align: "center" },
@@ -79,7 +79,7 @@ export default function data() {
 
     rows: [
       {
-        companies: <Company image={logoXD} name="Material UI XD Version" />,
+        companies: <Company image={logoXD} name="Main Account" />,
         members: (
           <MDBox display="flex" py={1}>
             {avatars([
@@ -102,7 +102,7 @@ export default function data() {
         ),
       },
       {
-        companies: <Company image={logoAtlassian} name="Add Progress Track" />,
+        companies: <Company image={logoAtlassian} name="Sub Account 1" />,
         members: (
           <MDBox display="flex" py={1}>
             {avatars([
@@ -123,7 +123,7 @@ export default function data() {
         ),
       },
       {
-        companies: <Company image={logoSlack} name="Fix Platform Errors" />,
+        companies: <Company image={logoSlack} name="Sub Account 2" />,
         members: (
           <MDBox display="flex" py={1}>
             {avatars([
@@ -144,7 +144,7 @@ export default function data() {
         ),
       },
       {
-        companies: <Company image={logoSpotify} name="Launch our Mobile App" />,
+        companies: <Company image={logoSpotify} name="Sub Account 3" />,
         members: (
           <MDBox display="flex" py={1}>
             {avatars([
@@ -167,7 +167,7 @@ export default function data() {
         ),
       },
       {
-        companies: <Company image={logoJira} name="Add the New Pricing Page" />,
+        companies: <Company image={logoJira} name="Sub Account 4" />,
         members: (
           <MDBox display="flex" py={1}>
             {avatars([[team4, "Jessica Doe"]])}
@@ -185,7 +185,7 @@ export default function data() {
         ),
       },
       {
-        companies: <Company image={logoInvesion} name="Redesign New Online Shop" />,
+        companies: <Company image={logoInvesion} name="Sub Account 5" />,
         members: (
           <MDBox display="flex" py={1}>
             {avatars([

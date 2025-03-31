@@ -7,7 +7,6 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import ReactJson from "react-json-view";
-import { Button } from "@mui/material";
 
 function Logs() {
   const [logData, setLogData] = useState({
@@ -81,24 +80,6 @@ function Logs() {
                     borderRadius: "8px",
                   }}
                 />
-              </MDBox>
-
-              {/* Save Button (Matching Dashboard Styling) */}
-              <MDBox display="flex" justifyContent="flex-end" p={3}>
-                <Button
-                  variant="contained"
-                  color="white" // Standard button color
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: "bold",
-                    boxShadow: "none",
-                    padding: "6px 12px",
-                    fontSize: "0.75rem",
-                    color: "#1A73E8",
-                  }}
-                >
-                  Save Changes
-                </Button>
               </MDBox>
             </Card>
           </Grid>

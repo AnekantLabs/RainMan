@@ -48,6 +48,7 @@ import SignUp from "layouts/authentication/sign-up";
 import Icon from "@mui/material/Icon";
 import Accounts from "layouts/accounts";
 import Logs from "layouts/logs";
+import AccountDetails from "layouts/account-details";
 
 const disableBilling = true;
 const disableNotifications = true;
@@ -125,6 +126,15 @@ const routes = [
     icon: <Icon fontSize="small">history</Icon>,
     route: "/logs",
     component: <Logs />,
+  },
+  // Hidden route - not shown in Sidenav
+  {
+    type: "route",
+    name: "Account Details",
+    key: "account-details",
+    route: "/account-details/:accountId",
+    component: <AccountDetails />,
+    noCollapse: true,
   },
 ];
 

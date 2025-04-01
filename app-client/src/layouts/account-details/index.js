@@ -243,9 +243,9 @@ function AccountDetails() {
                           '"Roboto", "Helvetica", "Arial", sans-serif',
                         letterSpacing: "0.0075em",
                         minWidth: "120px",
-                        color: tabValue === 0 ? "white" : "text.secondary",
+                        color: tabValue === 0 ? "#ffffff" : "text.secondary",
                         backgroundColor:
-                          tabValue === 0 ? "info.main" : "transparent",
+                          tabValue === 0 ? "#D3D3D3" : "transparent",
                         borderRadius: "5px 5px 0 0",
                       }}
                     />
@@ -260,9 +260,9 @@ function AccountDetails() {
                           '"Roboto", "Helvetica", "Arial", sans-serif',
                         letterSpacing: "0.0075em",
                         minWidth: "120px",
-                        color: tabValue === 1 ? "white" : "text.secondary",
+                        color: tabValue === 1 ? "#ffffff" : "text.secondary",
                         backgroundColor:
-                          tabValue === 1 ? "info.main" : "transparent",
+                          tabValue === 1 ? "#D3D3D3" : "transparent",
                         borderRadius: "5px 5px 0 0",
                         ml: 1,
                       }}

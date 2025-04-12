@@ -10,6 +10,9 @@ def process_alert(alert):
     Processes a TradingView alert, rebalances funds, and places an order.
     """
     try:
+        
+        print(f"Alert picked from redis queue: {alert}")
+        
         # Extract alert details
         account = alert["account"]
         action = alert["action"]
@@ -29,6 +32,7 @@ def process_alert(alert):
         position_size = calculate_position_size(
             total_balance, risk_percentage, stop_loss_distance, leverage
         )
+        print(f"Total balance: {total_balance} USDT, Stop Loss Distance: {stop_loss_distance}")
         print(f"Calculated position size: {position_size} USDT")
 
         # Transfer funds if necessary

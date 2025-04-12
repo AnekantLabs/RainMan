@@ -14,7 +14,7 @@ async def receive_tradingview_alert(alert: TradingViewAlert):
         print(alert)
         
         # just add the alert to the redis queue
-        add_task_to_queue(alert.dict())
+        add_task_to_queue(dict(alert))
         return {"Alert received and added to queue": alert}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

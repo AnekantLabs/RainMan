@@ -22,6 +22,6 @@ six==1.17.0
 toml==0.10.2
 tqdm==4.67.1
 tzdata==2025.2
-uvloop==0.20.0
+# uvloop==0.20.0
 vine==5.1.0
 wcwidth==0.2.13

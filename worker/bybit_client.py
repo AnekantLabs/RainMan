@@ -1,4 +1,3 @@
-import requests
 
 class BybitClient:
     def __init__(self, api_key, api_secret):

@@ -4,15 +4,14 @@ from bybit_client import BybitClient
 # Initialize Bybit client
 bybit_client = BybitClient(api_key="your_api_key", api_secret="your_api_secret")
 
-@app.task
+@app.task(name="tasks.process_alert")
 def process_alert(alert):
     """
     Processes a TradingView alert, rebalances funds, and places an order.
     """
+    print("Processing alert...")
     try:
-        
-        print(f"Alert picked from redis queue: {alert}")
-        
+        print(alert)
         # Extract alert details
         account = alert["account"]
         action = alert["action"]

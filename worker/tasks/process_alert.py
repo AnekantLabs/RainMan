@@ -2,7 +2,7 @@ from celery_app import app
 from bybit_client import BybitClient
 
 # Initialize Bybit client
-bybit_client = BybitClient(api_key="your_api_key", api_secret="your_api_secret")
+# bybit_client = BybitClient(api_key="your_api_key", api_secret="your_api_secret")
 
 @app.task(name="tasks.process_alert")
 def process_alert(alert):
@@ -11,7 +11,7 @@ def process_alert(alert):
     """
     print("Processing alert...")
     try:
-        print(alert)
+        print(f"Received alert: {alert}")  # Print the alert
         # Extract alert details
         account = alert["account"]
         action = alert["action"]
@@ -24,6 +24,9 @@ def process_alert(alert):
         tp_sizes = alert.get("tp_sizes", [])
 
         print(f"Processing alert for account: {account}, action: {action}, symbol: {symbol}")
+        
+        # initialize the bybit client with the account credentials
+        bybit_client = BybitClient(api_key="your_api_key", api_secret="your_api_secret")
 
         # Step 1: Rebalance funds
         total_balance = bybit_client.get_balance(account)

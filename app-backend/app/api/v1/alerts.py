@@ -17,7 +17,8 @@ async def receive_tradingview_alert(alert: TradingViewAlert, db: Session = Depen
         credentials = fetch_api_credentials(db, alert.account)
         # print(f"Ctredentials for account {alert.account}: {credentials}")
         
-        alert = alert.dict()  # Update the alert with credentials
+        # alert = alert.dict()  # Update the alert with credentials
+        alert = alert.model_dump()  # Update the alert with credentials
         alert.update(credentials)  # Add credentials to the alert
         
         # Update the alert with credentials

@@ -29,7 +29,7 @@ class BybitClient:
         # Example API call to transfer funds
         return {"status": "success", "amount": amount}
 
-    def place_order(self, market_pair, side, order_type, amount, leverage, stop_loss, take_profits, tp_sizes):
+    def place_order(self, category, market_pair, side, order_type, amount):
         """
         Places an order on Bybit.
         """
@@ -38,14 +38,12 @@ class BybitClient:
         try:
             amount = float(amount)
             response = self.session.place_order(
+                category=category,
                 symbol=market_pair,
                 side=side,
                 order_type=order_type,
                 qty=amount,
-                leverage=leverage,
-                stop_loss=stop_loss,
-                take_profits=take_profits,
-                tp_sizes=tp_sizes
+                timeInForce="GTC",
             )
             print(f"Order placed successfully: {response}")
             return {"status": "success", "order_id": response['result']['order_id']}

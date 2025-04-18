@@ -56,10 +56,13 @@ class BybitClient:
         transfer_id = str(uuid.uuid4())
         try:
             print(f"Initiating transfer of {amount} {coin} from {from_uid} → {to_uid}")
+            logger.info(f"Transfer ID: {transfer_id}. Initiating transfer of {amount} {coin} from {from_uid} → {to_uid}")
             response = self.session.create_universal_transfer(
                 transferId=transfer_id,
                 coin=coin,
                 amount=str(amount),
+                fromMemberId=from_uid,
+                toMemberId=to_uid,
                 fromAccountType="UNIFIED",
                 toAccountType="UNIFIED"
             )
@@ -92,3 +95,37 @@ class BybitClient:
             raise ValueError(f"Error placing order:{e} Stack trace: {e.__traceback__}")
         
         # Example API call to place an order
+        
+    # function to fetch the UID of the main account
+    def main_acc_uid(self):
+        """
+        Fetches the UID of the main account.
+        """
+        try:
+            response = self.session.get_uid_wallet_type(accountType="UNIFIED")
+            main_uid = response.get("result", {}).get("accounts", [{}])[0].get("uid")
+            return main_uid
+        except Exception as e:
+            print(f"❌ Error fetching main UID: {e}")
+            return None
+        
+    # function to fetch the UID of the sub account
+    def sub_acc_uid(self, username):
+        """
+        Fetches the UID of the sub account.
+        """
+        try:
+            response = self.session.get_sub_uid_list()
+            print(f"Sub account list: {response}")
+            sub_accounts = response.get("result", {}).get("subMembers", [{}])
+            if not sub_accounts:
+                print("❌ No sub accounts found.")
+                return None
+            for account in sub_accounts:
+                if account.get("username") == username:
+                    return account.get("uid")
+            return None
+        except Exception as e:
+            print(f"❌ Error fetching sub account UID: {e}")
+            return None
+    

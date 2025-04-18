@@ -4,7 +4,7 @@ import traceback
 import json
 
 # Initialize Bybit client
-# bybit_client = BybitClient(api_key="your_api_key", api_secret="your_api_secret")
+# bybit_client = BybitClient(api_key="your_api_key", api_main_secret="your_api_main_secret")
 
 import logging
 
@@ -27,44 +27,75 @@ def process_alert(alert):
         account = alert["account"]
         action = alert["action"]
         symbol = alert["symbol"]
-        apikey = alert.get("api_key")
-        secret = alert.get("api_secret")
+        main_apikey = alert.get("main_api_key")
+        main_secret = alert.get("main_api_secret")
         coin = "USDT"  # hardcoded for now, can make dynamic
-        logger.info(f"Alert details: account={account}, action={action}, symbol={symbol}, apikey={apikey}, secret={secret} , symbol={symbol}")
-        bybit_client = BybitClient(api_key=str(apikey), api_secret=str(secret))
+        logger.info(f"Alert details: account={account}, action={action}, symbol={symbol}, main_apikey={main_apikey}, main_secret={main_secret} , symbol={symbol}")
+        bybit_client = BybitClient(api_key=str(main_apikey), api_secret=str(main_secret))       # Initialize BybitClient with main account credentials
+        
+        # fetch the member ID of the main-account
+        main_account_id = bybit_client.main_acc_uid()
 
+        # bybit client for sub-account
+        if account != "main":
+            # create a new BybitClient instance for the sub-account
+            sub_apikey = alert.get("api_key")
+            sub_secret = alert.get("api_secret")
+            bybit_client_sub_account = BybitClient(api_key=str(sub_apikey), api_secret=str(sub_secret))
+            sub_account_id = bybit_client.sub_acc_uid(account)
+            print(f"Sub-account client initialized {account}")
+            logger.info(f"Sub-account client initialized {account}")
+        
         if action.upper() == "SELL":
             print(f"🛑 Sell alert received for {symbol} on {account}")
-            
-            # Fetch wallet balance before selling to determine how much to sell (e.g., spot token balance)
             token = symbol.replace("USDT", "")  # e.g., BTC if symbol is BTCUSDT
-            token_balance = bybit_client.get_wallet_balance(coin=token)
-
-            if token_balance > 0:
-                # Step 1: Close the position (market sell)
-                response = bybit_client.place_order(
-                    category="spot",
-                    market_pair=symbol,
-                    side="Sell",
-                    order_type="Market",
-                    amount=token_balance
-                )
-                print(f"✅ Closed position on {account}: Sold {token_balance} {token}")
+            
+            if account != "main":
+                # Fetch wallet balance before selling to determine how much to sell (e.g., spot token balance)
+                token_balance = bybit_client_sub_account.get_wallet_balance(coin=token)
+                
+                if token_balance > 0:
+                    # Step 1: Close the position (market sell)
+                    response = bybit_client_sub_account.place_order(
+                        category="spot",
+                        market_pair=symbol,
+                        side="Sell",
+                        order_type="Market",
+                        amount=token_balance
+                    )
+                    print(f"✅ Closed position on {account}: Sold {token_balance} {token}")
+                else:
+                    print(f"⚠️ No {token} balance in {account} to sell. In sub-account.")
+                
+                # Step 2: Transfer all USDT back to main
+                usdt_balance = bybit_client_sub_account.get_wallet_balance(coin="USDT")
+                if account != "main" and usdt_balance > 0:
+                    transfer_status = bybit_client_sub_account.transfer_funds(
+                        from_uid=sub_account_id,
+                        to_uid=main_account_id,
+                        amount=usdt_balance,
+                        coin="USDT"
+                    )
+                    print(f"🔁 Transferred {usdt_balance} USDT from {account} back to main: {transfer_status}")
+                else:
+                    print(f"ℹ️ No USDT available to return from {account}.")
+            
             else:
-                print(f"⚠️ No {token} balance in {account} to sell.")
+                # Fetch wallet balance before selling to determine how much to sell (e.g., spot token balance)
+                token_balance = bybit_client.get_wallet_balance(coin=token)
 
-            # Step 2: Transfer all USDT back to main
-            usdt_balance = bybit_client.get_wallet_balance(coin="USDT")
-            if account != "main" and usdt_balance > 0:
-                transfer_status = bybit_client.transfer_funds(
-                    from_uid=account,
-                    to_uid="main",
-                    amount=usdt_balance,
-                    coin="USDT"
-                )
-                print(f"🔁 Transferred {usdt_balance} USDT from {account} back to main: {transfer_status}")
-            else:
-                print(f"ℹ️ No USDT available to return from {account}.")
+                if token_balance > 0:
+                    # Step 1: Close the position (market sell)
+                    response = bybit_client.place_order(
+                        category="spot",
+                        market_pair=symbol,
+                        side="Sell",
+                        order_type="Market",
+                        amount=token_balance
+                    )
+                    print(f"✅ Closed position on {account}: Sold {token_balance} {token}")
+                else:
+                    print(f"⚠️ No {token} balance in {account} to sell. In main account.")
 
         else:
             # BUY/OPEN Logic
@@ -80,22 +111,37 @@ def process_alert(alert):
             )
             print(f"Calculated position size: {position_size} USDT")
 
+            # place order from sub-account if not main account
             if account != "main":
-                transfer_status = bybit_client.transfer_funds("main", account, position_size, coin="USDT")
+                # transfer_status = bybit_client.transfer_funds("main", account, position_size, coin="USDT")
+                transfer_status = bybit_client.transfer_funds(main_account_id, sub_account_id, position_size, coin="USDT")
                 if transfer_status != "SUCCESS":
                     raise ValueError(f"Transfer failed: {transfer_status}")
                 print(f"✅ Transferred {position_size} USDT to {account}")
 
-            # Place BUY order
-            qty = position_size / float(entry_price)
-            response = bybit_client.place_order(
-                category="spot",
-                market_pair=symbol,
-                side="Buy",
-                order_type="Market",
-                amount=qty
-            )
-            print(f"✅ Order placed successfully: {response}")
+                # Place BUY order
+                qty = position_size / float(entry_price)
+                response = bybit_client_sub_account.place_order(
+                    category="spot",
+                    market_pair=symbol,
+                    side="Buy",
+                    order_type="Market",
+                    # amount=qty
+                    amount="1"
+                )
+                print(f"✅ Order placed successfully: {response} from Sub account {account}")
+            # place order from main account
+            else:
+                # Place BUY order on main account
+                qty = position_size / float(entry_price)
+                response = bybit_client.place_order(
+                    category="spot",
+                    market_pair=symbol,
+                    side="Buy",
+                    order_type="Market",
+                    amount=qty
+                )
+                print(f"✅ Order placed successfully: {response} from Main account {account}") 
 
     except Exception as e:
         print(f"Error processing alert: {str(e)}")

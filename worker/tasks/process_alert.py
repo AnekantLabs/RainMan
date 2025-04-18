@@ -126,8 +126,7 @@ def process_alert(alert):
                     market_pair=symbol,
                     side="Buy",
                     order_type="Market",
-                    # amount=qty
-                    amount="1"
+                    amount=qty
                 )
                 print(f"✅ Order placed successfully: {response} from Sub account {account}")
             # place order from main account

@@ -1,5 +1,14 @@
 
+import uuid
 from pybit.unified_trading import HTTP
+import logging
+
+# Set up logging (add this near the top of your file)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 class BybitClient:
     def __init__(self, api_key, api_secret):
@@ -13,21 +22,53 @@ class BybitClient:
             testnet=self.testnet,
         )
 
-    def get_balance(self, account):
+    def get_wallet_balance(self, coin="USDT"):
         """
-        Fetches the balance of the specified account.
+        Fetches the available wallet balance for a given coin (default: USDT) from a UNIFIED account.
+        Returns the available balance as a float.
         """
-        # Example API call to fetch balance
-        print(f"Fetching balance for account: {account}")
-        return 10000  # Mock balance for demonstration
+        try:
+            logger.info(f"Fetching wallet balance for {coin.upper()}...")
+            response = self.session.get_wallet_balance(
+                accountType="UNIFIED",
+                coin=coin.upper()
+            )
+            wallet_list = response.get("result", {}).get("list", [])
+            if not wallet_list:
+                print("❌ No wallet data returned.")
+                return 0.0
 
-    def transfer_funds(self, from_account, to_account, amount):
+            coin_list = wallet_list[0].get("coin", [])
+            for c in coin_list:
+                if c["coin"] == coin.upper():
+                    balance = float(c["walletBalance"])
+                    print(f"✅ Available {coin.upper()} Balance: {balance}")
+                    return balance
+            return 0.0
+        except Exception as e:
+            print(f"❌ Error fetching wallet balance: {e}")
+            return 0.0
+
+    def transfer_funds(self, from_uid, to_uid, amount, coin="USDT"):
         """
-        Transfers funds between accounts.
+        Transfers funds between Unified accounts under same UID via internal transfer API.
         """
-        print(f"Transferring {amount} USDT from {from_account} to {to_account}")
-        # Example API call to transfer funds
-        return {"status": "success", "amount": amount}
+        transfer_id = str(uuid.uuid4())
+        try:
+            print(f"Initiating transfer of {amount} {coin} from {from_uid} → {to_uid}")
+            response = self.session.create_universal_transfer(
+                transferId=transfer_id,
+                coin=coin,
+                amount=str(amount),
+                fromAccountType="UNIFIED",
+                toAccountType="UNIFIED"
+            )
+            transfer_status = response.get("result", {}).get("status", "UNKNOWN")
+            print(f"[{transfer_status}] Transfer ID: {transfer_id}")
+            return transfer_status
+        except Exception as e:
+            print(f"❌ Transfer failed: {e}")
+            raise
 
     def place_order(self, category, market_pair, side, order_type, amount):
         """

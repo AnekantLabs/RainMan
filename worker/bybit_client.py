@@ -55,6 +55,8 @@ class BybitClient:
         """
         transfer_id = str(uuid.uuid4())
         try:
+            # Round the amount to 6 decimal places
+            amount = round(amount, 2)
             print(f"Initiating transfer of {amount} {coin} from {from_uid} → {to_uid}")
             logger.info(f"Transfer ID: {transfer_id}. Initiating transfer of {amount} {coin} from {from_uid} → {to_uid}")
             response = self.session.create_universal_transfer(
@@ -73,7 +75,7 @@ class BybitClient:
             print(f"❌ Transfer failed: {e}")
             raise
 
-    def place_order(self, category, market_pair, side, order_type, amount):
+    def place_order(self, category, market_pair, side, order_type, amount, stop_loss=None):
         """
         Places an order on Bybit.
         """
@@ -88,13 +90,78 @@ class BybitClient:
                 order_type=order_type,
                 qty=amount,
                 timeInForce="GTC",
+                stopLoss=stop_loss,
             )
             print(f"Order placed successfully: {response}")
             return {"status": "success", "order_id": response['result']['order_id']}
         except Exception as e:
             raise ValueError(f"Error placing order:{e} Stack trace: {e.__traceback__}")
         
-        # Example API call to place an order
+    def place_entry_and_tp_orders(self, category, symbol, side, order_type, qty, stop_loss=None, tps=None, tp_sizes=None):
+        """
+        Places an entry market order and optional batch take-profit orders.
+
+        :param symbol: Trading pair (e.g., "ETHUSDT").
+        :param side: "Buy" or "Sell" for the entry order.
+        :param order_type: Type of the entry order (e.g., "Market").
+        :param qty: Quantity for the entry order.
+        :param stop_loss: Stop-loss price for the entry order (optional).
+        :param tps: List of take-profit prices (optional).
+        :param tp_sizes: List of percentages for each take-profit level (optional).
+        :return: Response from the entry order and TP orders (if applicable).
+        """
+        try:
+            # Step 1: Place the entry market order
+            qty = round(float(qty), 2)  # Round to 2 decimal places for quantity
+            qty = str(qty)  # Convert to string for API compatibility
+            print(f"Placing {side} order for {symbol} with qty={qty} and stop_loss={stop_loss}")
+            
+            entry_response = self.session.place_order(
+                category=category,
+                symbol=symbol,
+                side=side,
+                order_type=order_type,
+                qty=qty,
+                # timeInForce="IOC",
+                timeInForce="GTC",
+                # stopLoss=stop_loss,
+                marketUnit="baseCoin"
+            )
+            print(f"✅ Entry order placed successfully: {entry_response}")
+            
+            # STOPLOSS ORDER CANT BE PLACED WTIH SPOT CATEGORY, CURRENTLY WE ARE USING SPOT CATEGORY
+            
+            # Step 2: Check if TP orders are provided
+            if tps and tp_sizes and len(tps) == len(tp_sizes):
+                print(f"Placing batch TP orders for {symbol}")
+                tp_orders = []
+                for tp_price, tp_size in zip(tps, tp_sizes):
+                    tp_qty = str(round(float(qty) * (float(tp_size) / 100), 5))
+                    tp_orders.append({
+                        "symbol": symbol,
+                        "side": "Sell" if side.lower() == "buy" else "Buy",  # Opposite side for TP
+                        "orderType": "Limit",
+                        "qty": tp_qty,
+                        "price": str(tp_price),
+                        "timeInForce": "GTC",
+                        # "reduceOnly": True,  # Ensure it only reduces the position
+                        "marketUnit": "baseCoin",
+                    })
+
+                
+                print(f"TP orders: {tp_orders}")
+                
+                # Place batch TP orders
+                batch_response = self.session.place_batch_order(category=category, request=tp_orders)
+                print(f"✅ Batch TP orders placed successfully: {batch_response}")
+                return {"entry_response": entry_response, "tp_response": batch_response}
+
+            # If no TP orders, return only the entry response
+            return {"entry_response": entry_response}
+
+        except Exception as e:
+            print(f"❌ Error placing entry and TP orders: {e}")
+            raise
         
     # function to fetch the UID of the main account
     def main_acc_uid(self):
@@ -116,6 +183,7 @@ class BybitClient:
         """
         try:
             response = self.session.get_sub_uid_list()
+            # response = self.session.get_uid_wallet_type()
             print(f"Sub account list: {response}")
             sub_accounts = response.get("result", {}).get("subMembers", [{}])
             if not sub_accounts:
@@ -129,3 +197,17 @@ class BybitClient:
             print(f"❌ Error fetching sub account UID: {e}")
             return None
     
+    def get_instrument_info(self, symbol, category="spot"):
+        """
+        Fetches instrument information for a given symbol.
+        """
+        try:
+            response = self.session.get_instruments_info(symbol=symbol, category=category)
+            if response.get("result"):
+                return response["result"]
+            else:
+                print(f"❌ Error fetching instrument info: {response.get('ret_msg', 'Unknown error')}")
+                return None
+        except Exception as e:
+            print(f"❌ Error fetching instrument info: {e}")
+            return None

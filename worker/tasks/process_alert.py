@@ -37,8 +37,8 @@ def process_alert(alert):
         bybit_client = BybitClient(api_key=str(main_apikey), api_secret=str(main_secret))       # Initialize BybitClient with main account credentials
         
         # fetch the member ID of the main-account
-        main_account_id = bybit_client.main_acc_uid()
-        
+        main_account_id = bybit_client.get_acc_uid()
+
         # get the instrument details for the symbol
         instrument_details = bybit_client.get_instrument_info(symbol=symbol)
         if not instrument_details:
@@ -51,9 +51,8 @@ def process_alert(alert):
             sub_apikey = alert.get("api_key")
             sub_secret = alert.get("api_secret")
             bybit_client_sub_account = BybitClient(api_key=str(sub_apikey), api_secret=str(sub_secret))
-            sub_account_id = bybit_client.sub_acc_uid(account)
-            print(f"Sub-account client initialized {account}")
-            logger.info(f"Sub-account client initialized {account}")
+            sub_account_id = bybit_client_sub_account.get_acc_uid()
+            print(f"Sub-account client initialized {account} with subaccount ID {sub_account_id}")
         
         if action.upper() == "SELL":
             print(f"🛑 Sell alert received for {symbol} on {account}")
@@ -126,6 +125,7 @@ def process_alert(alert):
             position_size = calculate_position_size(
                 total_balance, risk_percentage, stop_loss_distance, leverage, commission_percentage
             )
+            
             print(f"Calculated position size: {position_size} USDT")
 
             # place order from sub-account if not main account
@@ -139,7 +139,7 @@ def process_alert(alert):
                 # Place BUY order
                 qty = position_size / float(entry_price)
                 response = bybit_client_sub_account.place_entry_and_tp_orders(
-                    category="spot",
+                    category="linear",
                     symbol=symbol,
                     side="Buy",
                     order_type="Market",

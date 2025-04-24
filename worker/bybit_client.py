@@ -164,38 +164,20 @@ class BybitClient:
             raise
         
     # function to fetch the UID of the main account
-    def main_acc_uid(self):
+    def get_acc_uid(self):
         """
         Fetches the UID of the main account.
         """
         try:
             response = self.session.get_uid_wallet_type(accountType="UNIFIED")
             main_uid = response.get("result", {}).get("accounts", [{}])[0].get("uid")
+            print(f"account UIDDD: {main_uid}")
             return main_uid
         except Exception as e:
             print(f"❌ Error fetching main UID: {e}")
             return None
         
-    # function to fetch the UID of the sub account
-    def sub_acc_uid(self, username):
-        """
-        Fetches the UID of the sub account.
-        """
-        try:
-            response = self.session.get_sub_uid_list()
-            # response = self.session.get_uid_wallet_type()
-            print(f"Sub account list: {response}")
-            sub_accounts = response.get("result", {}).get("subMembers", [{}])
-            if not sub_accounts:
-                print("❌ No sub accounts found.")
-                return None
-            for account in sub_accounts:
-                if account.get("username") == username:
-                    return account.get("uid")
-            return None
-        except Exception as e:
-            print(f"❌ Error fetching sub account UID: {e}")
-            return None
+
     
     def get_instrument_info(self, symbol, category="spot"):
         """

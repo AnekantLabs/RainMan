@@ -1,19 +1,6 @@
-/**
-=========================================================
-* Rainman React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // react-router-dom components
 import { Link } from "react-router-dom";
@@ -43,8 +30,49 @@ import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
+
+    try {
+      const formData = new URLSearchParams();
+      formData.append("username", email); // backend expects "username" for email
+      formData.append("password", password);
+
+      const response = await axios.post("http://localhost:8000/api/v1/auth/token", formData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
+
+      const { access_token } = response.data;
+
+      // Save token in localStorage/sessionStorage depending on rememberMe
+      if (rememberMe) {
+        localStorage.setItem("access_token", access_token);
+      } else {
+        sessionStorage.setItem("access_token", access_token);
+      }
+
+      // Redirect to dashboard or another page
+      navigate("/dashboard");
+    } catch (err) {
+      const message =
+        err.response?.data?.detail || "Login failed. Please try again.";
+      setErrorMsg(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <BasicLayout image={bgImage}>
@@ -81,13 +109,28 @@ function Basic() {
             </Grid>
           </Grid>
         </MDBox>
+
         <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
+          <form onSubmit={handleSubmit}>
             <MDBox mb={2}>
-              <MDInput type="email" label="Email" fullWidth />
+              <MDInput
+                type="email"
+                label="Email"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="password" label="Password" fullWidth />
+              <MDInput
+                type="password"
+                label="Password"
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </MDBox>
             <MDBox display="flex" alignItems="center" ml={-1}>
               <Switch checked={rememberMe} onChange={handleSetRememberMe} />
@@ -101,9 +144,22 @@ function Basic() {
                 &nbsp;&nbsp;Remember me
               </MDTypography>
             </MDBox>
+
+            {errorMsg && (
+              <MDTypography color="error" mt={2} textAlign="center">
+                {errorMsg}
+              </MDTypography>
+            )}
+
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
-                sign in
+              <MDButton
+                variant="gradient"
+                color="info"
+                fullWidth
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign in"}
               </MDButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
@@ -121,7 +177,7 @@ function Basic() {
                 </MDTypography>
               </MDTypography>
             </MDBox>
-          </MDBox>
+          </form>
         </MDBox>
       </Card>
     </BasicLayout>

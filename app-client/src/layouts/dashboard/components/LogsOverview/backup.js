@@ -3,21 +3,20 @@ import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
-import TextField from "@mui/material/TextField";
 import { useTheme } from "@mui/material/styles";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import ReactJson from "react-json-view";
 import AlertService from "services/alertService";
 
 function LogsOverview() {
   const theme = useTheme();
-  const [logText, setLogText] = useState(""); // raw JSON text
+  const [logData, setLogData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [buttonMode, setButtonMode] = useState("edit");
+  const [isEditing, setIsEditing] = useState(false); // true when user has toggled edit mode
+  const [buttonMode, setButtonMode] = useState("edit"); // "edit" or "get-latest"
 
   const pollingInterval = useRef(null);
 
@@ -25,9 +24,7 @@ function LogsOverview() {
     if (isEditing) return;
     try {
       const alerts = await AlertService.getLatestAlerts();
-      if (alerts.length > 0) {
-        setLogText(JSON.stringify(alerts[0], null, 2)); // pretty format
-      }
+      if (alerts.length > 0) setLogData(alerts[0]);
     } catch (err) {
       setError("Failed to fetch latest alert.");
     } finally {
@@ -41,17 +38,25 @@ function LogsOverview() {
     return () => clearInterval(pollingInterval.current);
   }, []);
 
+  const handleJsonChange = (change) => {
+    if (change.updated_src) {
+      setLogData(change.updated_src);
+    }
+  };
+
   const handleSend = async () => {
+    if (!logData || typeof logData !== "object") return alert("Invalid JSON");
+
+    setSaving(true);
     try {
-      const parsed = JSON.parse(logText);
-      setSaving(true);
-      await AlertService.sendAlert(parsed);
+      await AlertService.sendAlert(logData);
       alert("Alert sent successfully.");
       setIsEditing(false);
       setButtonMode("edit");
-      fetchLatestAlert();
+      fetchLatestAlert(); // optionally refresh
     } catch (err) {
-      alert("Invalid JSON or failed to send.");
+      console.error("Failed to send alert:", err);
+      alert("Failed to send alert.");
     } finally {
       setSaving(false);
     }
@@ -68,6 +73,51 @@ function LogsOverview() {
       fetchLatestAlert();
       pollingInterval.current = setInterval(fetchLatestAlert, 5000);
     }
+  };
+
+  const renderJsonViewer = () => {
+    if (loading) {
+      return (
+        <MDBox display="flex" justifyContent="center" alignItems="center" height="200px">
+          <CircularProgress color="info" />
+        </MDBox>
+      );
+    }
+
+    if (error) {
+      return (
+        <MDTypography color="error" fontWeight="medium">
+          {error}
+        </MDTypography>
+      );
+    }
+
+    if (!logData) {
+      return (
+        <MDTypography variant="body2" fontWeight="medium">
+          No alert found.
+        </MDTypography>
+      );
+    }
+
+    return (
+      <ReactJson
+        src={logData}
+        theme="rjv-default"
+        enableClipboard={true}
+        displayDataTypes={false}
+        onEdit={handleJsonChange}
+        onAdd={handleJsonChange}
+        onDelete={handleJsonChange}
+        style={{
+          fontSize: "12px",
+          borderRadius: "8px",
+          backgroundColor: theme.palette.background.paper,
+          padding: "12px",
+          color: theme.palette.text.primary,
+        }}
+      />
+    );
   };
 
   return (
@@ -92,52 +142,43 @@ function LogsOverview() {
         }}
       >
         <MDTypography variant="h6" fontWeight="bold" color="white">
-          Logs Overview (Free-form JSON)
+          Logs Overview (Live + Editable)
         </MDTypography>
 
         <MDBox display="flex" gap={1}>
           <Button
-            variant="contained"
+            variant="outlined"
+            color={buttonMode === "edit" ? "secondary" : "primary"}
             onClick={handleEditToggle}
             disabled={loading}
             sx={{
               fontSize: "0.75rem",
               textTransform: "none",
               fontWeight: "bold",
-              backgroundColor:
-                buttonMode === "edit"
-                  ? theme.palette.info.main
-                  : theme.palette.success.main,
-              color: "#ffffff",
-              "&:hover": {
-                backgroundColor:
-                  buttonMode === "edit"
-                    ? theme.palette.info.dark
-                    : theme.palette.success.dark,
-              },
             }}
           >
             {buttonMode === "edit" ? "Edit JSON" : "Get Latest"}
           </Button>
+
           <Button
             variant="contained"
             onClick={handleSend}
-            disabled={saving || !logText}
+            disabled={saving || !logData}
             sx={{
               textTransform: "none",
               fontWeight: "bold",
+              boxShadow: "none",
               padding: "5px 10px",
               fontSize: "0.75rem",
-              backgroundColor: theme.palette.error.main,
-              color: "#ffffff",
+              color: "#1A73E8",
+              backgroundColor: "#ffffff",
               "&:hover": {
-                backgroundColor: theme.palette.error.dark,
+                backgroundColor: "#f0f0f0",
               },
             }}
           >
             {saving ? "Sending..." : "Send Alert"}
           </Button>
-
         </MDBox>
       </MDBox>
 
@@ -147,37 +188,14 @@ function LogsOverview() {
         sx={{
           backgroundColor: theme.palette.background.default,
           borderRadius: "10px",
-          p: 2,
+          p: 3,
           minHeight: "380px",
           maxHeight: "380px",
           overflowY: "auto",
           boxShadow: 2,
         }}
       >
-        {loading ? (
-          <MDBox display="flex" justifyContent="center" alignItems="center" height="100%">
-            <CircularProgress color="info" />
-          </MDBox>
-        ) : (
-          <TextField
-            fullWidth
-            multiline
-            minRows={20}
-            maxRows={40}
-            value={logText}
-            onChange={(e) => {
-              setLogText(e.target.value);
-              setIsEditing(true);
-            }}
-            variant="outlined"
-            placeholder="Paste JSON here..."
-            sx={{
-              fontFamily: "monospace",
-              backgroundColor: theme.palette.background.paper,
-              fontSize: "13px",
-            }}
-          />
-        )}
+        {renderJsonViewer()}
       </MDBox>
     </Card>
   );

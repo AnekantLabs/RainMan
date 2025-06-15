@@ -1,12 +1,8 @@
 import axiosInstance from "utils/axios";
-import AccountsAPI from "mock/api/accounts";
-
-// Flag to use mock API for development
-const USE_MOCK_API = true;
 
 /**
  * Service for handling account-related API operations
- * Adapts to the existing backend API structure
+ * Connects to FastAPI backend
  */
 const AccountService = {
   /**
@@ -14,37 +10,43 @@ const AccountService = {
    * @returns {Promise<Array>} - Promise resolving to an array of accounts
    */
   getAllAccounts: async () => {
-    if (USE_MOCK_API) {
-      return AccountsAPI.getAllAccounts();
-    }
-
     try {
-      // Adapt to backend API structure
       const response = await axiosInstance.get("/accounts/get-accounts");
-      // Process response if needed to match expected format
-      return response.data;
+
+      // Enhance data with placeholders for missing fields
+      return response.data.map((account) => ({
+        ...account,
+        balance: "$0.00",      // Temporary placeholder
+        performance: 50         // Temporary placeholder
+      }));
     } catch (error) {
       console.error("Error fetching accounts:", error);
-      // Return empty array on error
+      return [];
+    }
+  },
+    
+  /**
+   * Get all accounts along with totalWalletBalance from backend
+   * @returns {Promise<Array>} - Array of account objects with wallet_info
+   */
+  getAccountInfo: async () => {
+    try {
+      const response = await axiosInstance.get("/accounts/get-account-info");
+      return response.data.accounts || [];
+    } catch (error) {
+      console.error("Error fetching account info:", error);
       return [];
     }
   },
 
   /**
    * Get account details by ID
-   * @param {string} accountId - The ID of the account
-   * @returns {Promise<Object>} - Promise resolving to account details
+   * @param {string|number} accountId
+   * @returns {Promise<Object|null>}
    */
   getAccountById: async (accountId) => {
-    if (USE_MOCK_API) {
-      return AccountsAPI.getAccountById(accountId);
-    }
-
     try {
-      // Adapt to backend API structure
-      const response = await axiosInstance.get(
-        `/accounts/get-account/${accountId}`
-      );
+      const response = await axiosInstance.get(`/accounts/get-account/${accountId}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching account ${accountId}:`, error);
@@ -54,63 +56,42 @@ const AccountService = {
 
   /**
    * Create a new account
-   * @param {Object} accountData - The account data to create
-   * @returns {Promise<Object>} - Promise resolving to the created account
+   * @param {Object} accountData
+   * @returns {Promise<Object>}
    */
   createAccount: async (accountData) => {
-    if (USE_MOCK_API) {
-      return AccountsAPI.createAccount(accountData);
-    }
-
     try {
-      // Adapt to backend API structure
-      const response = await axiosInstance.post(
-        "/accounts/create-account",
-        accountData
-      );
+      const response = await axiosInstance.post("/accounts/create-account", accountData);
       return response.data;
     } catch (error) {
       console.error("Error creating account:", error);
-      throw error; // Re-throw to allow handling by the component
+      throw error;
     }
   },
 
   /**
    * Update an existing account
-   * @param {string} accountId - The ID of the account to update
-   * @param {Object} accountData - The updated account data
-   * @returns {Promise<Object>} - Promise resolving to the updated account
+   * @param {string|number} accountId
+   * @param {Object} accountData
+   * @returns {Promise<Object>}
    */
   updateAccount: async (accountId, accountData) => {
-    if (USE_MOCK_API) {
-      return AccountsAPI.updateAccount(accountId, accountData);
-    }
-
     try {
-      // Adapt to backend API structure
-      const response = await axiosInstance.put(
-        `/accounts/update-account/${accountId}`,
-        accountData
-      );
+      const response = await axiosInstance.put(`/accounts/update-account/${accountId}`, accountData);
       return response.data;
     } catch (error) {
       console.error(`Error updating account ${accountId}:`, error);
-      throw error; // Re-throw to allow handling by the component
+      throw error;
     }
   },
 
   /**
    * Delete an account
-   * @param {string} accountId - The ID of the account to delete
-   * @returns {Promise<boolean>} - Promise resolving to success status
+   * @param {string|number} accountId
+   * @returns {Promise<boolean>}
    */
   deleteAccount: async (accountId) => {
-    if (USE_MOCK_API) {
-      return AccountsAPI.deleteAccount(accountId);
-    }
-
     try {
-      // Adapt to backend API structure
       await axiosInstance.delete(`/accounts/delete-account/${accountId}`);
       return true;
     } catch (error) {
@@ -121,19 +102,12 @@ const AccountService = {
 
   /**
    * Get account balance and performance metrics
-   * @param {string} accountId - The ID of the account
-   * @returns {Promise<Object>} - Promise resolving to account metrics
+   * @param {string|number} accountId
+   * @returns {Promise<Object>}
    */
   getAccountMetrics: async (accountId) => {
-    if (USE_MOCK_API) {
-      return AccountsAPI.getAccountMetrics(accountId);
-    }
-
     try {
-      // Adapt to backend API structure
-      const response = await axiosInstance.get(
-        `/accounts/get-metrics/${accountId}`
-      );
+      const response = await axiosInstance.get(`/accounts/get-metrics/${accountId}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching metrics for account ${accountId}:`, error);

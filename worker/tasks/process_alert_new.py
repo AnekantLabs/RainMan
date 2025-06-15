@@ -78,7 +78,6 @@ class AlertProcessor:
         else:
             raise ValueError(f"Unsupported action: {self.action}")
     
-
     def handle_open(self):
         """Handle OPEN action for both long and short positions."""
         if self.side not in ["long", "short"]:
@@ -115,25 +114,6 @@ class AlertProcessor:
         
         logger.info(f"Calculated position size: {position_size} {self.coin}")
         
-        # Check for existing positions in the opposite direction
-        client = self.get_active_client()
-        position_info = client.get_position_info(symbol=self.symbol)
-        if position_info and float(position_info.get("size", 0)) > 0:
-            current_side = position_info.get("side").lower()
-            if (self.side == "long" and current_side == "sell") or (self.side == "short" and current_side == "buy"):
-                logger.info(f"Existing position found in the opposite direction ({current_side}). Closing it before opening a new trade.")
-                qty = float(position_info.get("size"))
-                close_side = "Buy" if current_side == "sell" else "Sell"
-                close_response = client.place_order(
-                    category="linear",
-                    symbol=self.symbol,
-                    side=close_side,
-                    order_type="Market",
-                    qty=qty,
-                    reduce_only=True
-                )
-                logger.info(f"Closed existing position: {close_response}")
-        
         # Transfer funds if using sub-account
         if self.account != "main":
             transfer_status = self.main_client.transfer_funds(
@@ -147,20 +127,14 @@ class AlertProcessor:
             logger.info(f"Transferred {position_size} {self.coin} to {self.account}")
         
         # Place order
-        qty = (position_size) / float(entry_price)  #THIS IS A HOT FIX multiply by leverage
+        client = self.get_active_client()
+        qty = position_size / float(entry_price)
         
         # Set margin type before placing order
-        # client.set_margin_mode(self.margin_type, self.symbol)
+        client.set_margin_mode(self.margin_type, self.symbol)
         
         # Set leverage for the position
-        # try:
-        #     current_leverage = position_info.get("leverage", 0)
-        #     if current_leverage != leverage:
-        #         client.set_leverage(leverage, self.symbol)
-        #         logger.info(f"Leverage for {self.symbol} set to {leverage}.")
-        # except Exception as e:
-        #     logger.error(f"Error setting leverage for {self.symbol}: {str(e)}")
-        #     raise ValueError(f"Error setting leverage: {str(e)}")
+        client.set_leverage(leverage, self.symbol)
         
         # Convert position side to order side
         order_side = "Buy" if self.side == "long" else "Sell"
@@ -245,8 +219,7 @@ class AlertProcessor:
                     self.symbol,
                     side,
                     "Market",
-                    qty,
-                    reduce_only=True,
+                    qty
                 )
                 results["close_position"] = close_response
                 logger.info(f"Closed position on {self.account} account: {close_response}")
@@ -350,8 +323,8 @@ class AlertProcessor:
         """
         # Apply leverage for futures trading
         risk_amount = balance * (risk_percentage / 100)
-        position_size = risk_amount / ((stop_loss_distance + commission_percentage))
-        logger.info(f"Risk amount: {risk_amount}, Position size: {position_size}")
+        position_size = risk_amount / (stop_loss_distance + commission_percentage)
+        
         # The position size calculation takes leverage into account for risk management
         # but doesn't multiply by leverage (as that would increase the risk)
         return position_size
@@ -396,5 +369,5 @@ def process_alert(self, alert_data):
         if not isinstance(e, ValueError):
             retry_in = 5 * (2 ** self.request.retries)  # 5, 10, 20 seconds
             self.retry(exc=e, countdown=retry_in)
-
+        
         raise

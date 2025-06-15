@@ -14,6 +14,7 @@ def fetch_api_credentials(db: Session, account_name: str):
     # query the account table from the db
     # filter the account by account_name and check if it is activated
     account = db.query(Account).filter(Account.account_name == account_name).first()
+
     if not account:
         raise ValueError(f"Account with name '{account_name}' not found.")
     if not account.is_activate:

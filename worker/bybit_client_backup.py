@@ -1,5 +1,6 @@
+
 import uuid
-from pybit.unified_trading import HTTP, WebSocket
+from pybit.unified_trading import HTTP
 import logging
 
 from redis_client import save_order_to_redis
@@ -21,12 +22,6 @@ class BybitClient:
             api_key=self.api_key,
             api_secret=self.api_secret,
             testnet=self.testnet,
-        )
-        self.ws = WebSocket(
-            testnet=self.testnet,
-            channel_type="private",
-            api_key=self.api_key,
-            api_secret=self.api_secret
         )
 
     def get_wallet_balance(self, coin="USDT"):
@@ -56,118 +51,6 @@ class BybitClient:
             print(f"❌ Error fetching wallet balance: {e}")
             return 0.0
 
-    def set_leverage(self, leverage, symbol, category="linear"):
-        """
-        Sets the leverage for a specific symbol.
-        
-        Args:
-            leverage (int/str): The leverage value to set (must be within allowed range)
-            symbol (str): The trading pair (e.g., BTCUSDT)
-            category (str): The category of the market (e.g., "linear", "inverse")
-            
-        Returns:
-            dict: The response from the Bybit API
-        """
-        try:
-            leverage_str = str(leverage)
-            logger.info(f"Setting leverage for {symbol} to {leverage_str}...")
-            
-            response = self.session.set_leverage(
-                category=category,
-                symbol=symbol.upper(),
-                buyLeverage=leverage_str,
-                sellLeverage=leverage_str
-            )
-            print(response," Leverageee response")
-            if response.get("retCode") == 0:
-                logger.info(f"✅ Successfully set leverage for {symbol} to {leverage_str}")
-                return {"status": "success", "message": f"Leverage set to {leverage_str}"}
-            else:
-                error_message = response.get("retMsg", "Unknown error")
-                logger.error(f"❌ Failed to set leverage: {error_message}")
-                raise ValueError(f"Error setting leverage: {error_message}")
-        except Exception as e:
-            logger.error(f"❌ Error setting leverage for {symbol}: {e}")
-            raise ValueError(f"Error setting leverage: {e}")
-
-    def set_margin_mode(self, margin_type, symbol, category="linear"):
-        """
-        Switches between cross and isolated margin mode for a specific symbol.
-        
-        Args:
-            margin_type (str): "cross" or "isolated"
-            symbol (str): The trading pair (e.g., BTCUSDT)
-            category (str): The category of the market (e.g., "linear", "inverse")
-            
-        Returns:
-            dict: The response from the Bybit API
-        """
-        try:
-            # Convert margin_type string to integer (0 for cross, 1 for isolated)
-            if margin_type.lower() not in ["cross", "isolated"]:
-                raise ValueError("Margin type must be either 'cross' or 'isolated'")
-                
-            trade_mode = 0 if margin_type.lower() == "cross" else 1
-            
-            # Get current leverage to maintain it when switching margin modes
-            position_info = self.get_position_info(symbol, category)
-            leverage = position_info.get("leverage", "10")  # Default to 10 if not found
-            
-            logger.info(f"Setting {symbol} margin mode to {margin_type} (tradeMode={trade_mode})...")
-            
-            response = self.session.switch_margin_mode(
-                category=category,
-                symbol=symbol.upper(),
-                tradeMode=trade_mode,
-                buyLeverage=leverage,
-                sellLeverage=leverage
-            )
-            
-            if response.get("retCode") == 0:
-                logger.info(f"✅ Successfully set margin mode for {symbol} to {margin_type}")
-                return {"status": "success", "message": f"Margin mode set to {margin_type}"}
-            else:
-                error_message = response.get("retMsg", "Unknown error")
-                logger.error(f"❌ Failed to set margin mode: {error_message}")
-                raise ValueError(f"Error setting margin mode: {error_message}")
-        except Exception as e:
-            logger.error(f"❌ Error setting margin mode for {symbol}: {e}")
-            raise ValueError(f"Error setting margin mode: {e}")
-
-    def get_current_price(self, symbol):
-        """
-        Gets the current price for a specific symbol.
-        
-        Args:
-            symbol (str): The trading pair (e.g., BTCUSDT)
-            
-        Returns:
-            float: The current price of the symbol
-        """
-        try:
-            logger.info(f"Getting current price for {symbol}...")
-            response = self.session.get_tickers(
-                category="linear",
-                symbol=symbol.upper()
-            )
-            
-            if response.get("retCode") == 0:
-                price_data = response.get("result", {}).get("list", [])
-                if price_data:
-                    # Get the last price from the first result
-                    current_price = float(price_data[0].get("lastPrice", 0))
-                    logger.info(f"Current price for {symbol}: {current_price}")
-                    return current_price
-                else:
-                    logger.error(f"❌ No price data found for {symbol}")
-                    return 0
-            else:
-                error_message = response.get("retMsg", "Unknown error")
-                logger.error(f"❌ Failed to get current price: {error_message}")
-                return 0
-        except Exception as e:
-            logger.error(f"❌ Error getting current price for {symbol}: {e}")
-            return 0
 
     def get_transferable_amount(self, coins):
         """
@@ -297,7 +180,7 @@ class BybitClient:
             logger.error(f"❌ Error amending stop-loss for {symbol}: {e}")
             raise
 
-    def place_order(self, category, symbol, side, order_type, qty, stop_loss=None,reduce_only=False):
+    def place_order(self, category, symbol, side, order_type, qty, stop_loss=None):
         """
         Places an order on Bybit.
 
@@ -321,7 +204,6 @@ class BybitClient:
                 order_type=order_type,
                 qty=str(qty),
                 timeInForce="GTC",
-                reduceOnly=reduce_only,  # Set reduceOnly if specified
             )
             if response.get("retCode") == 0:
                 order_id = response['result'].get('orderId')  # Use 'orderId' as returned by the API
@@ -529,6 +411,3 @@ class BybitClient:
         except Exception as e:
             print(f"❌ Error fetching instrument info: {e}")
             return None
-        
-    # def connect_private_orders_ws(self):
-        

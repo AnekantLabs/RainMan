@@ -2,12 +2,17 @@ import asyncio
 import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import asyncpg
+import os
+from dotenv import load_dotenv
+load_dotenv()  # Load variables from .env
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 router = APIRouter()
 clients = set()
 
 async def listen_to_db():
-    conn = await asyncpg.connect(dsn="postgresql://postgres:postgres@localhost:5432/rainman")
+    conn = await asyncpg.connect(dsn=DATABASE_URL)
     await conn.add_listener("trade_updates", db_notify_handler)
     while True:
         await asyncio.sleep(60)

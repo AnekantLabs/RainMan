@@ -4,7 +4,11 @@ from sqlalchemy.orm import sessionmaker
 # from datetime import datetime
 # Base = declarative_base()
 from sqlalchemy import create_engine
+from dotenv import load_dotenv
+import os
 
+load_dotenv()  # Load variables from .env
+DATABASE_URL = os.getenv("DATABASE_URL")
 # class Trade(Base):
 #     __tablename__ = "trades"
 #     id = Column(Integer, primary_key=True)
@@ -27,7 +31,7 @@ from sqlalchemy import create_engine
 #     account_name = Column(String, ForeignKey("accounts.account_name"), nullable=False)  # Foreign key to accounts
 
 # DB setup (adjust URI as needed)
-engine = create_engine("postgresql://postgres:postgres@localhost:5432/rainman")
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 
 

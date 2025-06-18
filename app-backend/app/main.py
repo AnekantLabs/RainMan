@@ -47,3 +47,7 @@ async def startup_db():
 def read_root(db: Session = Depends(get_db)):
     return {"message": "PostgreSQL is connected!"}
 
+@app.on_event("shutdown")
+def clear_logs_on_shutdown():
+    print("🔴 Clearing worker_logs from Redis...")
+    r.delete("worker_logs")

@@ -1,15 +1,14 @@
 import uuid
 from pybit.unified_trading import HTTP, WebSocket
-import logging
-
 from redis_client import save_order_to_redis
-
+from logging_event import get_logger
+logger = get_logger()
 # Set up logging (add this near the top of your file)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# )
+# logger = logging.getLogger(__name__)
 
 class BybitClient:
     def __init__(self, api_key, api_secret):

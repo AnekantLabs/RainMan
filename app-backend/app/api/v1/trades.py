@@ -14,3 +14,11 @@ def get_trades_for_account(account_name: str, db: Session = Depends(get_db)):
     if not trades:
         raise HTTPException(status_code=404, detail=f"No trades found for account '{account_name}'")
     return trades
+
+@trade_router.get("/", response_model=list[TradeResponse])
+def get_all_trades(db: Session = Depends(get_db)):
+    """Fetch all trades from the database."""
+    trades = db.query(Trade).all()
+    if not trades:
+        raise HTTPException(status_code=404, detail="No trades found")
+    return trades

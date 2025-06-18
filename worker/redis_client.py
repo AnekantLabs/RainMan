@@ -1,7 +1,8 @@
 # filepath: /home/daksh/RainMan/worker/utils/redis_client.py
 import json
-import logging
 import redis
+from logging_event import get_logger
+logger = get_logger()
 
 # Redis configuration
 REDIS_HOST = "127.0.0.1"
@@ -19,11 +20,11 @@ redis_client = redis.Redis(
 )
 
 # Set up logging (add this near the top of your file)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# )
+# logger = logging.getLogger(__name__)
 
 def save_order_to_redis(self, order_id, order_data):
     """

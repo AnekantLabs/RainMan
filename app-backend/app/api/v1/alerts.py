@@ -1,5 +1,6 @@
+import asyncio
 from uuid import uuid4
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.schemas.pydantic_schemas import TradingViewAlert
 from app.celery.celery_app import celery
@@ -7,6 +8,12 @@ from app.core.db_session import get_db
 import json
 from app.utils.fetch_api_credential import fetch_api_credentials
 from app.models.db_models import AlertLog
+# logs_api.py
+from fastapi import APIRouter
+from sse_starlette.sse import EventSourceResponse
+import redis
+import json
+import time
 
 alert_router = APIRouter(prefix="/alerts", tags=["Alerts"])
 
@@ -50,3 +57,41 @@ async def receive_tradingview_alert(alert: TradingViewAlert, db: Session = Depen
 async def get_latest_alerts(db: Session = Depends(get_db)):
     alerts = db.query(AlertLog).order_by(AlertLog.created_at.desc()).limit(2).all()
     return [a.data for a in alerts]
+
+
+
+router = APIRouter()
+r = redis.Redis(host="localhost", port=6379, db=0)
+
+@alert_router.get("/logs/stream")
+async def log_stream(request: Request):
+    async def event_generator():
+        last_seen_logs = set()
+
+        while True:
+            if await request.is_disconnected():
+                break
+
+            logs = r.lrange("worker_logs", 0, 50)
+            new_logs = []
+
+            for raw in reversed(logs):
+                if isinstance(raw, bytes):
+                    raw = raw.decode()
+                if raw not in last_seen_logs:
+                    try:
+                        log = json.loads(raw)
+                        new_logs.append(log)
+                        last_seen_logs.add(raw)
+                    except Exception as e:
+                        print("Invalid log entry:", e)
+
+            for log in new_logs:
+                yield {
+                    "event": "log",
+                    "data": json.dumps(log)  # ONLY ONE 'data:' is added by SSE wrapper
+                }
+
+            await asyncio.sleep(1)
+
+    return EventSourceResponse(event_generator())

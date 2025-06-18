@@ -34,7 +34,7 @@ function Projects() {
             return {
               ...account,
               balance: `$${rawBalance.toFixed(2)}`,
-              performance: Math.min((rawBalance / 10) * 100, 100),
+              performance: 50, // Fixed value for demo or standard baseline
             };
           })
           .sort((a, b) => a.account_name.localeCompare(b.account_name));

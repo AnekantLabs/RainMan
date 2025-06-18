@@ -37,16 +37,20 @@ def user_detail(user_id: int, db: Session = Depends(get_db)):
     return db_user
 
 
-@user_router.delete('/{user_id}')
-def user_delete(user_id: int, db: Session = Depends(get_db)):
-    db_user = get_user(db, user_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+# @user_router.delete('/{user_id}')
+# def user_delete(user_id: int, db: Session = Depends(get_db)):
+#     db_user = get_user(db, user_id)
+#     if db_user is None:
+#         raise HTTPException(status_code=404, detail="User not found")
 
-    delete_user(db, db_user.id)
-    return {"message": "User deleted"}
+#     delete_user(db, db_user.id)
+#     return {"message": "User deleted"}
 
 
 @user_router.post("/", response_model=UserSchema)
-def user_post(user: UserCreate, db:Session = Depends(get_db)):
+def user_post(user: UserCreate, db: Session = Depends(get_db)):
+    existing_users = get_users(db)
+    if len(existing_users) >= 2:
+        raise HTTPException(status_code=400, detail="User limit reached. Maximum 2 users allowed.")
+
     return create_user(db, user)

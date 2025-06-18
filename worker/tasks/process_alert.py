@@ -5,14 +5,15 @@ import json
 import logging
 from decimal import Decimal
 from typing import Dict, List, Optional, Union, Any
+from logging_event import get_logger
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# )
+# logger = logging.getLogger(__name__)
+logger = get_logger()
 
 class AlertProcessor:
     """Class to handle TradingView alert processing and trading operations."""
@@ -193,7 +194,7 @@ class AlertProcessor:
         
         # Place sell order
         response = client.place_entry_and_tp_orders(
-            category="spot",
+            category="linear",
             symbol=self.symbol,
             side="Sell",
             order_type="Market",

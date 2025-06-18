@@ -92,7 +92,7 @@ function LogsOverview() {
         }}
       >
         <MDTypography variant="h6" fontWeight="bold" color="white">
-          Logs Overview (Free-form JSON)
+          Alerts Overview 
         </MDTypography>
 
         <MDBox display="flex" gap={1}>

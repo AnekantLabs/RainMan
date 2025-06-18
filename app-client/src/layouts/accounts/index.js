@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -9,17 +8,17 @@ import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import Modal from "@mui/material/Modal";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { MenuItem } from "@mui/material";
+
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
-
-// Import Data Function
 import accountsTableData from "layouts/accounts/data/accountsTableData";
 import axiosInstance from "utils/axios";
-import { MenuItem } from "@mui/material";
 
 function Accounts() {
   const [rows, setRows] = useState([]);
@@ -28,7 +27,6 @@ function Accounts() {
   const [editedAccount, setEditedAccount] = useState({});
   const [isNew, setIsNew] = useState(false);
 
-  // fetch the data from the backend when the component is rendered
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
@@ -41,10 +39,9 @@ function Accounts() {
     if (!drawerOpen) {
       fetchAccounts(); // Re-fetch data when drawer closes
     }
-  }, [drawerOpen]); // keep the dependency array empty, only load when the whole component renders
+  }, [drawerOpen]);
 
   const handleOpenDrawer = (account = null, isNew = false) => {
-    // selected account is the account to be edited
     setSelectedAccount(account);
     setEditedAccount(
       account
@@ -71,14 +68,7 @@ function Accounts() {
     try {
       let updatedRows;
       if (isNew) {
-        // Add a new account via API
-        const response = await axiosInstance.post(
-          "/accounts/create-account",
-          editedAccount
-        );
-        console.log(`New Account: ${JSON.stringify(response.data)}`);
-
-        // Ensure "is_activate" is stored as boolean
+        const response = await axiosInstance.post("/accounts/create-account", editedAccount);
         updatedRows = [
           ...rows,
           {
@@ -87,13 +77,7 @@ function Accounts() {
           },
         ];
       } else {
-        // Update an existing account via API
-        await axiosInstance.put(
-          `/accounts/update-account/${selectedAccount.id}`,
-          editedAccount
-        );
-        console.log(`Edited Account: ${JSON.stringify(editedAccount)}`);
-
+        await axiosInstance.put(`/accounts/update-account/${selectedAccount.id}`, editedAccount);
         updatedRows = rows.map((acc) =>
           acc.id === selectedAccount.id
             ? {
@@ -104,7 +88,7 @@ function Accounts() {
         );
       }
 
-      setRows(updatedRows); // Correctly update the state
+      setRows(updatedRows);
       setDrawerOpen(false);
     } catch (error) {
       console.error("Error saving account:", error);
@@ -155,19 +139,32 @@ function Accounts() {
             </Card>
           </Grid>
         </Grid>
-        <Button
-          variant="contained"
-          color="primary"
+
+        {/* Enhanced Add Button */}
+        <MDButton
+          variant="gradient"
+          color="info"
           startIcon={<AddIcon />}
-          sx={{ marginTop: 2 }}
+          sx={{
+            mt: 4,
+            px: 4,
+            py: 1.5,
+            fontSize: "1rem",
+            fontWeight: "bold",
+            borderRadius: "8px",
+            transition: "all 0.2s ease-in-out",
+            "&:hover": {
+              transform: "scale(1.03)",
+            },
+          }}
           onClick={() => handleOpenDrawer(null, true)}
         >
-          Add New Account
-        </Button>
+           Add New Account
+        </MDButton>
       </MDBox>
       <Footer />
 
-      {/* Side Drawer for Account Details */}
+      {/* Modal Drawer */}
       <Modal open={drawerOpen} onClose={handleCloseDrawer}>
         <MDBox
           sx={{
@@ -183,12 +180,7 @@ function Accounts() {
             color: "text.primary",
           }}
         >
-          <MDBox
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
+          <MDBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <MDTypography variant="h5">
               {isNew ? "Add New Account" : "Edit Account"}
             </MDTypography>
@@ -199,14 +191,11 @@ function Accounts() {
 
           <Grid container spacing={2}>
             {Object.keys(editedAccount)
-              .filter(
-                (key) => !["id", "created_at", "last_updated"].includes(key)
-              )
+              .filter((key) => !["id", "created_at", "last_updated"].includes(key))
               .map((key) => {
                 let inputField;
 
                 if (key === "is_activate") {
-                  // Dropdown for "Is Activate"
                   inputField = (
                     <TextField
                       select
@@ -237,7 +226,6 @@ function Accounts() {
                     </TextField>
                   );
                 } else if (key === "role") {
-                  // Dropdown for "Role"
                   inputField = (
                     <TextField
                       select
@@ -268,11 +256,11 @@ function Accounts() {
                     </TextField>
                   );
                 } else {
-                  // Regular TextField for other inputs
                   inputField = (
                     <TextField
                       fullWidth
                       label={key.replace("_", " ")}
+                      type={["api_key", "api_secret"].includes(key) ? "password" : "text"}
                       value={editedAccount[key] || ""}
                       onChange={(e) =>
                         setEditedAccount({
@@ -298,6 +286,7 @@ function Accounts() {
                 );
               })}
           </Grid>
+
           <Button
             variant="contained"
             color="primary"

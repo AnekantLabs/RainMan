@@ -2,7 +2,6 @@ import asyncio
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from app.schemas.pydantic_schemas import TradingViewAlert
 from app.celery.celery_app import celery
 from app.core.db_session import get_db
 import json
@@ -13,13 +12,12 @@ from fastapi import APIRouter
 from sse_starlette.sse import EventSourceResponse
 import redis
 import json
-import time
 
 alert_router = APIRouter(prefix="/alerts", tags=["Alerts"])
 
 # route to receive alerts from TradingView
 @alert_router.post("/receive-tradingview-alert")
-async def receive_tradingview_alert(alert: TradingViewAlert, db: Session = Depends(get_db)):
+async def receive_tradingview_alert(alert, db: Session = Depends(get_db)):
     try:
         alert_data = alert.model_dump()
         alert_id = str(uuid4())

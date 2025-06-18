@@ -30,7 +30,7 @@ function Accounts() {
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const response = await axiosInstance.get("/accounts/get-accounts");
+        const response = await axiosInstance.get("api/v1/accounts/get-accounts");
         setRows(response.data);
       } catch (error) {
         console.log(`Error fetching Accounts ${error}`);
@@ -68,7 +68,7 @@ function Accounts() {
     try {
       let updatedRows;
       if (isNew) {
-        const response = await axiosInstance.post("/accounts/create-account", editedAccount);
+        const response = await axiosInstance.post("api/v1/accounts/create-account", editedAccount);
         updatedRows = [
           ...rows,
           {

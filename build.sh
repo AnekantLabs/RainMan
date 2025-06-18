@@ -22,7 +22,7 @@ cd ..
 echo "📦 Starting Celery Worker..."
 cd worker || { echo "❌ worker directory not found!"; exit 1; }
 source workerenv/bin/activate
-celery -A celery_app worker --loglevel=info > ../worker.log 2>&1 &
+celery -A celery_app worker --loglevel=info -Q alerts,websocket_queue > ../worker.log 2>&1 &
 echo "✅ Worker started (check worker.log)"
 cd ..
 

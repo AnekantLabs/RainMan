@@ -31,7 +31,8 @@ async def receive_tradingview_alert(alert: dict = Body(...) , db: Session = Depe
         db.commit()
 
         # Fetch API credentials after saving
-        credentials = fetch_api_credentials(db, alert.account)
+        account_name = alert_data.get("account")
+        credentials = fetch_api_credentials(db, account_name)
         alert_data.update(credentials)
 
         # Queue for processing

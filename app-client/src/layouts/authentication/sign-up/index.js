@@ -21,6 +21,8 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 // Images
 import bgImage from "assets/images/bg-sign-up-cover.jpeg";
 
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
+
 function Cover() {
   const navigate = useNavigate();
 
@@ -54,7 +56,7 @@ function Cover() {
     setLoading(true);
 
     try {
-      await axios.post("http://localhost:8000/api/v1/users/", {
+      await axios.post(`${BACKEND_BASE_URL}/api/v1/users/`, {
         username: formData.name,
         email: formData.email,
         password: formData.password,

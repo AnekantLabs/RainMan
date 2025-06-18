@@ -19,6 +19,8 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 import Projects from "layouts/dashboard/components/Projects";
 import LogsOverview from "layouts/dashboard/components/LogsOverview";
 
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
+
 function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -38,7 +40,7 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchAndProcessTrades = () => {
-      axios.get("http://localhost:8000/api/v1/trades")
+      axios.get(`${BACKEND_BASE_URL}/api/v1/trades`)
         .then((res) => {
           const data = res.data;
           setTrades(data);

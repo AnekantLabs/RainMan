@@ -11,7 +11,7 @@ const AccountService = {
    */
   getAllAccounts: async () => {
     try {
-      const response = await axiosInstance.get("/accounts/get-accounts");
+      const response = await axiosInstance.get("api/v1/accounts/get-accounts");
 
       // Enhance data with placeholders for missing fields
       return response.data.map((account) => ({
@@ -31,7 +31,7 @@ const AccountService = {
    */
   getAccountInfo: async () => {
     try {
-      const response = await axiosInstance.get("/accounts/get-account-info");
+      const response = await axiosInstance.get("api/v1/accounts/get-account-info");
       return response.data.accounts || [];
     } catch (error) {
       console.error("Error fetching account info:", error);
@@ -46,7 +46,7 @@ const AccountService = {
    */
   getAccountById: async (accountId) => {
     try {
-      const response = await axiosInstance.get(`/accounts/get-account/${accountId}`);
+      const response = await axiosInstance.get(`api/v1/accounts/get-account/${accountId}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching account ${accountId}:`, error);
@@ -61,7 +61,7 @@ const AccountService = {
    */
   createAccount: async (accountData) => {
     try {
-      const response = await axiosInstance.post("/accounts/create-account", accountData);
+      const response = await axiosInstance.post("api/v1/accounts/create-account", accountData);
       return response.data;
     } catch (error) {
       console.error("Error creating account:", error);
@@ -77,7 +77,7 @@ const AccountService = {
    */
   updateAccount: async (accountId, accountData) => {
     try {
-      const response = await axiosInstance.put(`/accounts/update-account/${accountId}`, accountData);
+      const response = await axiosInstance.put(`api/v1/accounts/update-account/${accountId}`, accountData);
       return response.data;
     } catch (error) {
       console.error(`Error updating account ${accountId}:`, error);
@@ -92,7 +92,7 @@ const AccountService = {
    */
   deleteAccount: async (accountId) => {
     try {
-      await axiosInstance.delete(`/accounts/delete-account/${accountId}`);
+      await axiosInstance.delete(`api/v1/accounts/delete-account/${accountId}`);
       return true;
     } catch (error) {
       console.error(`Error deleting account ${accountId}:`, error);
@@ -107,7 +107,7 @@ const AccountService = {
    */
   getAccountMetrics: async (accountId) => {
     try {
-      const response = await axiosInstance.get(`/accounts/get-metrics/${accountId}`);
+      const response = await axiosInstance.get(`api/v1/accounts/get-metrics/${accountId}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching metrics for account ${accountId}:`, error);

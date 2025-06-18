@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
+
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
   const [isValid, setIsValid] = useState(null);
@@ -13,7 +15,7 @@ function ProtectedRoute({ children }) {
     }
 
     axios
-      .get("http://localhost:8000/api/v1/users/me", {
+      .get(`${BACKEND_BASE_URL}/api/v1/users/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

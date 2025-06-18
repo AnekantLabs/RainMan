@@ -10,7 +10,7 @@ const AlertService = {
    */
   getLatestAlerts: async () => {
     try {
-      const response = await axiosInstance.get("/alerts/latest");
+      const response = await axiosInstance.get("api/v1/alerts/latest");
       return response.data || [];
     } catch (error) {
       console.error("Error fetching latest alerts:", error);
@@ -25,7 +25,7 @@ const AlertService = {
    */
   sendAlert: async (alertData) => {
     try {
-      const response = await axiosInstance.post("/alerts/receive-tradingview-alert", alertData);
+      const response = await axiosInstance.post("api/v1/alerts/receive-tradingview-alert", alertData);
       return response.data;
     } catch (error) {
       console.error("Error sending alert:", error);

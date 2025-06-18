@@ -9,12 +9,14 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
+
 function Logs() {
   const [logs, setLogs] = useState([]);
   const eventSourceRef = useRef(null);
 
   useEffect(() => {
-    const source = new EventSource("http://localhost:8000/api/v1/alerts/logs/stream");
+    const source = new EventSource(`${BACKEND_BASE_URL}/api/v1/alerts/logs/stream`);
     eventSourceRef.current = source;
 
     source.addEventListener("log", (event) => {

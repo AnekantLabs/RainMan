@@ -11,10 +11,6 @@ import Switch from "@mui/material/Switch";
 import Grid from "@mui/material/Grid";
 import MuiLink from "@mui/material/Link";
 
-// @mui icons
-import FacebookIcon from "@mui/icons-material/Facebook";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import GoogleIcon from "@mui/icons-material/Google";
 
 // Rainman React components
 import MDBox from "components/MDBox";
@@ -27,6 +23,8 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
 
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
@@ -48,7 +46,7 @@ function Basic() {
       formData.append("username", email); // backend expects "username" for email
       formData.append("password", password);
 
-      const response = await axios.post("http://localhost:8000/api/v1/auth/token", formData, {
+      const response = await axios.post(`${BACKEND_BASE_URL}/api/v1/auth/token`, formData, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },

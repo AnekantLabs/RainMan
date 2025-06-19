@@ -77,7 +77,7 @@ function Accounts() {
           },
         ];
       } else {
-        await axiosInstance.put(`/accounts/update-account/${selectedAccount.id}`, editedAccount);
+        await axiosInstance.put(`api/v1/accounts/update-account/${selectedAccount.id}`, editedAccount);
         updatedRows = rows.map((acc) =>
           acc.id === selectedAccount.id
             ? {

@@ -1,91 +1,94 @@
-/**
-=========================================================
-* Rainman  React - v2.2.0
-=========================================================
+export default function configs(labels = [], datasets = []) {
+  if (!datasets.length || !datasets[0].data || !datasets[0].backgroundColor) {
+    return {
+      data: {
+        labels: [],
+        datasets: [],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+      },
+    };
+  }
 
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
+  const maxAccounts = 10;
 
-Coded by www.creative-tim.com
+  const sortedData = datasets[0].data
+    .map((val, i) => ({
+      label: labels[i],
+      value: val,
+      color: datasets[0].backgroundColor[i] || "#9e9e9e",
+    }))
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+    .slice(0, maxAccounts);
 
- =========================================================
+  const filteredLabels = sortedData.map((d) => d.label);
+  const filteredData = sortedData.map((d) => d.value);
+  const filteredColors = sortedData.map((d) => d.color);
 
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-function configs(labels, datasets) {
   return {
     data: {
-      labels,
+      labels: filteredLabels,
       datasets: [
         {
-          label: datasets.label,
-          tension: 0.4,
-          borderWidth: 0,
-          borderRadius: 4,
-          borderSkipped: false,
-          backgroundColor: "rgba(255, 255, 255, 0.8)",
-          data: datasets.data,
-          maxBarThickness: 6,
+          label: datasets[0].label || "PnL",
+          data: filteredData,
+          backgroundColor: filteredColors,
+          borderRadius: 6,
+          barThickness: 20,
+          maxBarThickness: 25,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      interaction: {
-        intersect: false,
-        mode: "index",
-      },
       scales: {
         y: {
+          beginAtZero: true,
           grid: {
-            drawBorder: false,
-            display: true,
-            drawOnChartArea: true,
-            drawTicks: false,
-            borderDash: [5, 5],
-            color: "rgba(255, 255, 255, .2)",
+            color: "rgba(255, 255, 255, 0.08)",
+            borderDash: [3, 3],
           },
           ticks: {
-            suggestedMin: 0,
-            suggestedMax: 500,
-            beginAtZero: true,
-            padding: 10,
+            color: "rgba(255, 255, 255, 0.7)", // soft white
             font: {
               size: 14,
-              weight: 300,
-              family: "Roboto",
-              style: "normal",
-              lineHeight: 2,
+              weight: "600",
+              family: "Roboto, sans-serif",
             },
-            color: "#fff",
+            padding: 10,
+            callback: (value) => `$${value}`,
           },
         },
         x: {
           grid: {
-            drawBorder: false,
-            display: true,
-            drawOnChartArea: true,
-            drawTicks: false,
-            borderDash: [5, 5],
-            color: "rgba(255, 255, 255, .2)",
+            display: false,
           },
           ticks: {
-            display: true,
-            color: "#f8f9fa",
-            padding: 10,
+            color: "rgba(255, 255, 255, 0.7)", // soft white
             font: {
               size: 14,
-              weight: 300,
-              family: "Roboto",
-              style: "normal",
-              lineHeight: 2,
+              weight: "600",
+              family: "Roboto, sans-serif",
+            },
+            padding: 8,
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          backgroundColor: "#1e1e1e",
+          titleColor: "#fff",
+          bodyColor: "#fff",
+          callbacks: {
+            label: function (context) {
+              const value = context.raw;
+              return `${context.label}: $${value.toFixed(2)}`;
             },
           },
         },
@@ -93,5 +96,3 @@ function configs(labels, datasets) {
     },
   };
 }
-
-export default configs;

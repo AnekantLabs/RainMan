@@ -2,7 +2,7 @@
 import axios from "axios";
 
 // Get API URL from environment variables or fallback to localhost
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1";
+const API_URL = process.env.REACT_APP_BACKEND_BASE_URL || "http://localhost:8000/api/v1";
 
 const axiosInstance = axios.create({
   baseURL: API_URL, // FastAPI backend URL

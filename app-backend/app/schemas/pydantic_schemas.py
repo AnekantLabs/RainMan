@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,EmailStr
 from typing import Optional
 from datetime import datetime
 
@@ -59,3 +59,50 @@ class TradingViewAlert(BaseModel):
     risk_percentage: float = None
     commission_percentage: float = None
     margin_type: str = None
+
+
+class TradeResponse(BaseModel):
+    id: int
+    order_id: str
+    account_name: str
+    symbol: Optional[str]
+    side: Optional[str]
+    order_type: Optional[str]
+    price: Optional[float]
+    qty: Optional[float]
+    status: Optional[str]
+    avg_price: Optional[float]
+    cum_exec_qty: Optional[float]
+    cum_exec_value: Optional[float]
+    cum_exec_fee: Optional[float]
+    closed_pnl: Optional[float]
+    category: Optional[str]
+    created_time: Optional[datetime]
+    updated_time: Optional[datetime]
+    raw_event: Optional[dict]
+
+    class Config:
+        orm_mode = True
+
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+class UserSchema(UserBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    email: str | None = None

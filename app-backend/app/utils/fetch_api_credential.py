@@ -42,6 +42,7 @@ def fetch_api_credentials(db: Session, account_name: str):
             "main_api_secret": main_account.api_secret,
             "api_key": account.api_key,
             "api_secret": account.api_secret,
+            "role": account.role
         }
     else:
         raise ValueError(f"Unknown role '{account.role}' for account '{account_name}'.")

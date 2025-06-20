@@ -128,6 +128,8 @@ function Dashboard() {
       (a, b) => new Date(`1970-01-01T${a}`) - new Date(`1970-01-01T${b}`)
     );
     const sortedPnls = sortedTimes.map((t) => intradayPnlMap[t]);
+    console.log("Intraday Labels:", sortedTimes);
+    console.log("Intraday PnL Data:", sortedPnls);
     setDailyChart({
       labels: sortedTimes,
       datasets: [{ label: "Intraday PnL", data: sortedPnls }],

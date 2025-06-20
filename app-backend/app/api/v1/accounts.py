@@ -103,6 +103,7 @@ def send_accounts_to_queue(db: Session = Depends(get_db)):
         account.account_name: {
             "api_key": account.api_key,
             "api_secret": account.api_secret,
+            "role": account.role,
         }
         for account in active_accounts
     }

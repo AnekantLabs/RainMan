@@ -22,6 +22,7 @@ class AlertProcessor:
         """Initialize with alert data."""
         self.alert = alert_data
         self.account = alert_data.get("account")
+        self.role = alert_data.get("role", "main")  # Default to main role
         self.action = alert_data.get("action", "").upper()
         self.symbol = alert_data.get("symbol")
         self.side = alert_data.get("side", "").lower()  # Add side attribute (long/short)
@@ -42,7 +43,7 @@ class AlertProcessor:
         # Initialize sub-account client if needed
         self.sub_client = None
         self.sub_account_id = None
-        if self.account != "main":
+        if self.role != "main":
             sub_api_key = alert_data.get("api_key")
             sub_api_secret = alert_data.get("api_secret")
             self.sub_client = BybitClient(
@@ -60,7 +61,7 @@ class AlertProcessor:
 
     def get_active_client(self):
         """Return the appropriate client based on account type."""
-        return self.sub_client if self.account != "main" else self.main_client
+        return self.sub_client if self.role != "main" else self.main_client
     
     def process(self):
         """Process the alert based on action type."""
@@ -136,7 +137,7 @@ class AlertProcessor:
                 logger.info(f"Closed existing position: {close_response}")
         
         # Transfer funds if using sub-account
-        if self.account != "main":
+        if self.role != "main":
             transfer_status = self.main_client.transfer_funds(
                 self.main_account_id, 
                 self.sub_account_id, 
@@ -207,7 +208,7 @@ class AlertProcessor:
         logger.info(f"Sold {token_balance} {token} on {self.account} account")
         
         # Transfer USDT back to main if from sub-account
-        if self.account != "main":
+        if self.role != "main":
             usdt_balance = self.sub_client.get_wallet_balance(coin=self.coin)
             if usdt_balance > 0:
                 transfer_status = self.sub_client.transfer_funds(
@@ -323,7 +324,7 @@ class AlertProcessor:
             return client.session.set_trading_stop(**params)
         except AttributeError:
             # Fallback if client.session doesn't exist
-            if self.account != "main":
+            if self.role != "main":
                 return self.sub_client.session.set_trading_stop(**params)
             else:
                 return self.main_client.session.set_trading_stop(**params)

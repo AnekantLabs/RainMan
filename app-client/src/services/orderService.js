@@ -11,7 +11,7 @@ const OrderService = {
    */
   getTradesByAccountName: async (accountName) => {
     try {
-      const response = await axiosInstance.get(`/trades/get-trades/${accountName}`);
+      const response = await axiosInstance.get(`api/v1/trades/get-trades/${accountName}`);
       return response.data || [];
     } catch (error) {
       console.error(`Error fetching trades for account "${accountName}":`, error);
@@ -26,7 +26,7 @@ const OrderService = {
    */
   getOrderById: async (orderId) => {
     try {
-      const response = await axiosInstance.get(`/orders/get-order/${orderId}`);
+      const response = await axiosInstance.get(`api/v1/orders/get-order/${orderId}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching order ${orderId}:`, error);

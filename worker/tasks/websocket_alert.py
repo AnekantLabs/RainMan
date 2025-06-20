@@ -161,6 +161,7 @@ class MessageHandler:
 
     def handle_private_orders_message(self, order: Dict[str, Any], account_name: str):
         try:
+            logger.info(f"Processing order for {account_name}: {order} to DB")
             oid = order.get("orderId")
             if not oid:
                 return

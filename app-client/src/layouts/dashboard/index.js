@@ -218,7 +218,7 @@ function Dashboard() {
                 percentage={{
                   color: "error",
                   amount: "",
-                  label: "Closed Losses",
+                  label: "Closed Losses Across All Accounts – Lifetime Total",
                 }}
               />
             </MDBox>
@@ -233,7 +233,7 @@ function Dashboard() {
                 percentage={{
                   color: "success",
                   amount: "",
-                  label: "Closed Profits",
+                  label: "Closed Profits Across All Accounts – Lifetime Total",
                 }}
               />
             </MDBox>
@@ -248,7 +248,7 @@ function Dashboard() {
                 percentage={{
                   color: totalPnl >= 0 ? "success" : "error",
                   amount: "",
-                  label: "Across all accounts",
+                  label: "PnL Across All Accounts – Lifetime Total",
                 }}
               />
             </MDBox>
@@ -283,9 +283,9 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsBarChart
                   color="info"
-                  title="PnL by Category"
+                  title="Some Chart"
                   description="Category-wise distribution"
-                  date="Updated live"
+                  date="Updated just now"
                   chart={categoryBar}
                 />
               </MDBox>

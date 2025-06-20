@@ -8,7 +8,7 @@ import { useState } from "react";
 import axios from "axios";
 
 // @mui material components
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle,Box } from "@mui/material";
 
 // Rainman React components
 import MDBox from "components/MDBox";
@@ -49,14 +49,16 @@ function RestartStrategyButton() {
 
   return (
     <MDBox mt={1} ml={1}>
+    <Box display="flex" justifyContent="flex-end" mt={2} mb={3} ml={1.5} >
       <Button
         variant="contained"
         color="success"
         onClick={handleRestartClick}
         size="small"
       >
-        Restart
+        Fix me
       </Button>
+    </Box>
 
       <Dialog open={openDialog} onClose={handleCancel} sx={{ zIndex: 1300 }}>
         <DialogTitle>

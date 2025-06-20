@@ -48,7 +48,7 @@ function Accounts() {
         ? { ...account }
         : {
             account_name: "",
-            role: "",
+            role: "main",  // ✅ Explicit default
             api_key: "",
             api_secret: "",
             risk_percentage: "",
@@ -289,11 +289,26 @@ function Accounts() {
 
           <Button
             variant="contained"
-            color="primary"
-            sx={{ mt: 3, width: "100%" }}
             onClick={handleSave}
+            sx={{
+              mt: 3,
+              width: "100%",
+              height: "50px",
+              backgroundColor: "#1A73E8", // Brighter blue
+              color: "#FFFFFF", // White text for contrast
+              fontWeight: "bold",
+              fontSize: "1rem",
+              textTransform: "none",
+              borderRadius: "8px",
+              boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.2)",
+              transition: "all 0.2s ease-in-out",
+              '&:hover': {
+                backgroundColor: "#1558b0", // Darker on hover
+                transform: "scale(1.02)",
+              },
+            }}
           >
-            {isNew ? "Add Account" : "Save Changes"}
+            {isNew ? "➕ Add Account" : "💾 Save Changes"}
           </Button>
         </MDBox>
       </Modal>

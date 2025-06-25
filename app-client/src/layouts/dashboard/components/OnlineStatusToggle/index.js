@@ -1,18 +1,7 @@
-/**
-=========================================================
-* Rainman React - v2.2.0
-=========================================================
-*/
-
 import { useState } from "react";
 import axios from "axios";
-
-// @mui material components
-import { Button, Box } from "@mui/material";
-
-// Rainman React components
+import { Button, Box, CircularProgress } from "@mui/material";
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
 
 const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
 
@@ -20,14 +9,16 @@ function RestartStrategyButton() {
   const [loading, setLoading] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
 
-  const handleRestart = async () => {
+  const handleRestart = async (e) => {
+    e.preventDefault();
     setLoading(true);
     setResponseMessage("");
 
     try {
       const response = await axios.post(`${BACKEND_BASE_URL}/api/v1/accounts/send-accounts-to-queue`);
-      setResponseMessage(response.data.message || "Strategy restarted.");
-      alert("✅ " + (response.data.message || "Strategy restarted."));
+      const msg = response.data.message || "Strategy restarted.";
+      setResponseMessage(msg);
+      alert("✅ " + msg);
     } catch (error) {
       const msg = error?.response?.data?.detail || "Failed to restart strategy.";
       setResponseMessage(msg);
@@ -46,14 +37,24 @@ function RestartStrategyButton() {
           size="small"
           disabled={loading}
           sx={{
-            backgroundColor: "#4caf50",        // Material Green 500
+            backgroundColor: "#4caf50",
             color: "#fff",
+            minWidth: 90,        // ✅ Make button narrower
+            padding: "4px 10px", // ✅ Reduce height & width
+            fontSize: "0.75rem", // Same as default small button text
             "&:hover": {
-              backgroundColor: "#388e3c",      // Darker green on hover
+              backgroundColor: "#388e3c",
             },
           }}
         >
-          {loading ? "Restarting..." : "Fix me"}
+          {loading ? (
+            <>
+              <CircularProgress size={8} sx={{ color: "white", mr: -1 }} />
+              Restarting
+            </>
+          ) : (
+            "Fix me"
+          )}
         </Button>
       </Box>
     </MDBox>

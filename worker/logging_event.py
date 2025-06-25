@@ -2,7 +2,7 @@
 import logging
 import redis
 import json
-from datetime import datetime
+from datetime import datetime,timedelta, timezone
 
 class RedisLogHandler(logging.Handler):
     def __init__(self, redis_url="redis://localhost:6379", key="worker_logs"):
@@ -15,7 +15,7 @@ class RedisLogHandler(logging.Handler):
         log_object = {
             "level": record.levelname,
             "message": log_entry,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone(timedelta(hours=2))).isoformat()
         }
         try:
             self.redis.lpush(self.key, json.dumps(log_object))

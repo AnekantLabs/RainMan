@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Card from "@mui/material/Card";
 import Icon from "@mui/material/Icon";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import CircularProgress from "@mui/material/CircularProgress";
+import { useTheme } from "@mui/material/styles";
 
 // Rainman React components
 import MDBox from "components/MDBox";
@@ -13,7 +15,15 @@ import DataTable from "examples/Tables/DataTable";
 // Services
 import AccountService from "services/accountService";
 
+// Context
+import { useMaterialUIController } from "context";
+
 function Projects() {
+  const theme = useTheme();
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
+  const navigate = useNavigate();
+  
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menu, setMenu] = useState(null);
@@ -61,7 +71,35 @@ function Projects() {
   }, []);
 
   const handleNavigateToAccounts = () => {
-    window.location.href = "/accounts";
+    navigate("/accounts");
+    closeMenu();
+  };
+
+  const handleRefreshData = () => {
+    setLoading(true);
+    // Trigger a refresh by calling the fetch function
+    const fetchAccounts = async () => {
+      try {
+        const accountsData = await AccountService.getAccountInfo();
+        const enhancedAccounts = accountsData
+          .map((account) => {
+            const rawBalance = parseFloat(account.wallet_info?.total_wallet_balance || "0");
+            return {
+              ...account,
+              balance: `$${rawBalance.toFixed(2)}`,
+              performance: 50,
+            };
+          })
+          .sort((a, b) => a.account_name.localeCompare(b.account_name));
+        setAccounts(enhancedAccounts);
+      } catch (error) {
+        console.error("Error fetching accounts:", error);
+        setAccounts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAccounts();
     closeMenu();
   };
 
@@ -73,10 +111,18 @@ function Projects() {
       transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={Boolean(menu)}
       onClose={closeMenu}
+      PaperProps={{
+        sx: {
+          backgroundColor: darkMode 
+            ? theme.palette.background.paper 
+            : theme.palette.background.paper,
+          color: darkMode ? theme.palette.text.primary : theme.palette.text.primary,
+        }
+      }}
     >
       <MenuItem onClick={handleNavigateToAccounts}>View All Accounts</MenuItem>
       <MenuItem onClick={handleNavigateToAccounts}>Add New Account</MenuItem>
-      <MenuItem onClick={closeMenu}>Refresh Data</MenuItem>
+      <MenuItem onClick={handleRefreshData}>Refresh Data</MenuItem>
     </Menu>
   );
 
@@ -102,14 +148,18 @@ function Projects() {
             variant="button"
             fontWeight="medium"
             lineHeight={1}
-            color="text"
+            color={darkMode ? "white" : "text"}
           >
             {account.account_name}
           </MDTypography>
         </MDBox>
       ),
       balance: (
-        <MDTypography variant="caption" color="text" fontWeight="medium">
+        <MDTypography 
+          variant="caption" 
+          color={darkMode ? "white" : "text"} 
+          fontWeight="medium"
+        >
           {account.balance}
         </MDTypography>
       ),
@@ -139,15 +189,25 @@ function Projects() {
 
   const handleRowClick = (rowData) => {
     if (rowData && rowData.account_name) {
-      window.location.href = `/account-details/${rowData.account_name}`;
+      navigate(`/account-details/${rowData.account_name}`);
     }
   };
 
   return (
-    <Card>
+    <Card
+      sx={{
+        backgroundColor: darkMode 
+          ? theme.palette.background.card 
+          : theme.palette.background.paper,
+      }}
+    >
       <MDBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
         <MDBox>
-          <MDTypography variant="h6" gutterBottom>
+          <MDTypography 
+            variant="h6" 
+            gutterBottom
+            color={darkMode ? "white" : "text"}
+          >
             Accounts
           </MDTypography>
           <MDBox display="flex" alignItems="center" lineHeight={0}>
@@ -156,14 +216,22 @@ function Projects() {
             >
               done
             </Icon>
-            <MDTypography variant="button" fontWeight="regular" color="text">
+            <MDTypography 
+              variant="button" 
+              fontWeight="regular" 
+              color={darkMode ? "white" : "text"}
+            >
               &nbsp;<strong>{accounts.length} accounts</strong> traded
             </MDTypography>
           </MDBox>
         </MDBox>
-        <MDBox color="text" px={2}>
+        <MDBox color={darkMode ? "white" : "text"} px={2}>
           <Icon
-            sx={{ cursor: "pointer", fontWeight: "bold" }}
+            sx={{ 
+              cursor: "pointer", 
+              fontWeight: "bold",
+              color: darkMode ? theme.palette.text.primary : theme.palette.text.primary,
+            }}
             fontSize="small"
             onClick={openMenu}
           >

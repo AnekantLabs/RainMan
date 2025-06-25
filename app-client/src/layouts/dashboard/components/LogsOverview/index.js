@@ -8,9 +8,13 @@ import { useTheme } from "@mui/material/styles";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import AlertService from "services/alertService";
+import { useMaterialUIController } from "context";
 
 function LogsOverview() {
   const theme = useTheme();
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
+  
   const [logText, setLogText] = useState(""); // raw JSON text
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -74,7 +78,9 @@ function LogsOverview() {
     <Card
       sx={{
         height: "auto",
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: darkMode 
+          ? theme.palette.background.card 
+          : theme.palette.background.paper,
         borderRadius: "12px",
         boxShadow: 3,
         p: 3,
@@ -141,11 +147,18 @@ function LogsOverview() {
         </MDBox>
       </MDBox>
 
-      <Divider sx={{ my: 2, bgcolor: "grey.600" }} />
+      <Divider 
+        sx={{ 
+          my: 2, 
+          bgcolor: darkMode ? "grey.700" : "grey.600" 
+        }} 
+      />
 
       <MDBox
         sx={{
-          backgroundColor: theme.palette.background.default,
+          backgroundColor: darkMode 
+            ? theme.palette.background.default 
+            : theme.palette.background.default,
           borderRadius: "10px",
           p: 2,
           minHeight: "380px",
@@ -173,8 +186,29 @@ function LogsOverview() {
             placeholder="Paste JSON here..."
             sx={{
               fontFamily: "monospace",
-              backgroundColor: theme.palette.background.paper,
+              backgroundColor: darkMode 
+                ? theme.palette.background.card 
+                : theme.palette.background.paper,
               fontSize: "13px",
+              "& .MuiOutlinedInput-root": {
+                color: darkMode ? theme.palette.text.primary : theme.palette.text.primary,
+                "& fieldset": {
+                  borderColor: darkMode ? theme.palette.grey[700] : theme.palette.grey[300],
+                },
+                "&:hover fieldset": {
+                  borderColor: darkMode ? theme.palette.grey[600] : theme.palette.grey[400],
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: theme.palette.info.main,
+                },
+              },
+              "& .MuiInputBase-input": {
+                color: darkMode ? "#ffffff" : theme.palette.text.primary,
+                "&::placeholder": {
+                  color: darkMode ? theme.palette.text.secondary : theme.palette.text.secondary,
+                  opacity: 1,
+                },
+              },
             }}
           />
         )}

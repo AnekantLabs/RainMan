@@ -54,14 +54,14 @@ const routes = [
     route: "/notifications",
     component: disableNotifications ? null : <ProtectedRoute><Notifications /></ProtectedRoute>,
   },
-  {
-    type: "collapse",
-    name: "Profile",
-    key: "profile",
-    icon: <Icon fontSize="small">person</Icon>,
-    route: "/profile",
-    component: <ProtectedRoute><Profile /></ProtectedRoute>,
-  },
+  // {
+  //   type: "collapse",
+  //   name: "Profile",
+  //   key: "profile",
+  //   icon: <Icon fontSize="small">person</Icon>,
+  //   route: "/profile",
+  //   component: <ProtectedRoute><Profile /></ProtectedRoute>,
+  // },
   {
     type: "collapse",
     name: "Accounts",

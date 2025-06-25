@@ -285,7 +285,7 @@ function Configurator() {
           <Switch checked={darkMode} onChange={handleDarkMode} />
         </MDBox>
         <Divider />
-        <MDBox mt={3} mb={2}>
+        {/* <MDBox mt={3} mb={2}>
           <MDButton
             component={Link}
             href="https://www.creative-tim.com/learning-lab/react/quick-start/material-dashboard/"
@@ -297,8 +297,8 @@ function Configurator() {
           >
             view documentation
           </MDButton>
-        </MDBox>
-        <MDBox display="flex" justifyContent="center">
+        </MDBox> */}
+        {/* <MDBox display="flex" justifyContent="center">
           <GitHubButton
             href="https://github.com/creativetimofficial/material-dashboard-react"
             data-icon="octicon-star"
@@ -308,14 +308,14 @@ function Configurator() {
           >
             Star
           </GitHubButton>
-        </MDBox>
+        </MDBox> */}
         <MDBox mt={2} textAlign="center">
-          <MDBox mb={0.5}>
+          {/* <MDBox mb={0.5}>
             <MDTypography variant="h6">Thank you for sharing!</MDTypography>
-          </MDBox>
+          </MDBox> */}
 
           <MDBox display="flex" justifyContent="center">
-            <MDBox mr={1.5}>
+            {/* <MDBox mr={1.5}>
               <MDButton
                 component={Link}
                 href="//twitter.com/intent/tweet?text=Check%20Material%20Dashboard%20React%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23react%20%mui&url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fmaterial-dashboard-react"
@@ -326,8 +326,8 @@ function Configurator() {
                 <TwitterIcon />
                 &nbsp; Tweet
               </MDButton>
-            </MDBox>
-            <MDButton
+            </MDBox> */}
+            {/* <MDButton
               component={Link}
               href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/material-dashboard-react"
               target="_blank"
@@ -336,7 +336,7 @@ function Configurator() {
             >
               <FacebookIcon />
               &nbsp; Share
-            </MDButton>
+            </MDButton> */}
           </MDBox>
         </MDBox>
       </MDBox>

@@ -17,6 +17,7 @@ class Account(Base):
     risk_percentage = Column(Float, nullable=False)
     leverage = Column(Float, nullable=False)
     is_activate = Column(Boolean, default=True)
+    is_deleted = Column(Boolean, default=False, server_default='false')
     created_at = Column(DateTime(timezone=True), server_default=func.now())  # Auto-generated timestamp
     last_updated = Column(DateTime(timezone=True), onupdate=func.now())  # Updated on every change
 

@@ -3,15 +3,21 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
+import { useTheme } from "@mui/material/styles";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
+import { useMaterialUIController } from "context";
 
 const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
 
 function Logs() {
+  const theme = useTheme();
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
+  
   const [logs, setLogs] = useState([]);
   const eventSourceRef = useRef(null);
 
@@ -67,7 +73,9 @@ function Logs() {
               sx={{
                 boxShadow: 2,
                 borderRadius: "12px",
-                backgroundColor: "white",
+                backgroundColor: darkMode 
+                  ? theme.palette.background.card 
+                  : "white",
               }}
             >
               {/* Header */}
@@ -90,7 +98,9 @@ function Logs() {
               <MDBox
                 p={3}
                 sx={{
-                  bgcolor: "#f9fafc",
+                  bgcolor: darkMode 
+                    ? theme.palette.background.default 
+                    : "#f9fafc",
                   borderRadius: "12px",
                   overflow: "auto",
                   maxHeight: "75vh",
@@ -100,7 +110,10 @@ function Logs() {
                 }}
               >
                 {logs.length === 0 ? (
-                  <MDTypography variant="body2" color="textSecondary">
+                  <MDTypography 
+                    variant="body2" 
+                    color={darkMode ? "white" : "textSecondary"}
+                  >
                     Waiting for logs...
                   </MDTypography>
                 ) : (
@@ -111,10 +124,14 @@ function Logs() {
                       alignItems="center"
                       justifyContent="space-between"
                       sx={{
-                        borderBottom: "1px solid #eee",
+                        borderBottom: darkMode 
+                          ? "1px solid #444" 
+                          : "1px solid #eee",
                         paddingY: "6px",
                         "&:hover": {
-                          backgroundColor: "#eef2f6",
+                          backgroundColor: darkMode 
+                            ? "rgba(255, 255, 255, 0.08)" 
+                            : "#eef2f6",
                         },
                       }}
                     >
@@ -125,13 +142,17 @@ function Logs() {
                           color={getChipColor(log.level)}
                           variant="filled"
                         />
-                        <MDTypography variant="caption" color="text" fontWeight="medium">
+                        <MDTypography 
+                          variant="caption" 
+                          color={darkMode ? "white" : "text"} 
+                          fontWeight="medium"
+                        >
                           {log.timestamp}
                         </MDTypography>
                       </Stack>
                       <MDTypography
                         variant="caption"
-                        color="text"
+                        color={darkMode ? "white" : "text"}
                         sx={{
                           ml: 2,
                           flex: 1,

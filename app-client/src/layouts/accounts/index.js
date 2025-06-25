@@ -20,6 +20,7 @@ import DataTable from "examples/Tables/DataTable";
 import accountsTableData from "layouts/accounts/data/accountsTableData";
 import axiosInstance from "utils/axios";
 
+
 function Accounts() {
   const [rows, setRows] = useState([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -51,8 +52,6 @@ function Accounts() {
             role: "main",  // ✅ Explicit default
             api_key: "",
             api_secret: "",
-            risk_percentage: "",
-            leverage: "",
             is_activate: true,
           }
     );
@@ -64,11 +63,32 @@ function Accounts() {
     setDrawerOpen(false);
   };
 
+  const handleDelete = async (accountId) => {
+    if (window.confirm("Are you sure you want to delete this account? This action cannot be undone.")) {
+      try {
+        await axiosInstance.delete(`api/v1/accounts/delete-account/${accountId}`);
+        // Remove the deleted account from the state
+        setRows(rows.filter(account => account.id !== accountId));
+        console.log("Account deleted successfully");
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        alert("Failed to delete account. Please try again.");
+      }
+    }
+  };
+
   const handleSave = async () => {
     try {
+      // Add default values for leverage and risk_percentage before sending to backend
+      const accountData = {
+        ...editedAccount,
+        leverage: 0,
+        risk_percentage: 0,
+      };
+
       let updatedRows;
       if (isNew) {
-        const response = await axiosInstance.post("api/v1/accounts/create-account", editedAccount);
+        const response = await axiosInstance.post("api/v1/accounts/create-account", accountData);
         updatedRows = [
           ...rows,
           {
@@ -77,7 +97,7 @@ function Accounts() {
           },
         ];
       } else {
-        await axiosInstance.put(`api/v1/accounts/update-account/${selectedAccount.id}`, editedAccount);
+        await axiosInstance.put(`api/v1/accounts/update-account/${selectedAccount.id}`, accountData);
         updatedRows = rows.map((acc) =>
           acc.id === selectedAccount.id
             ? {
@@ -95,7 +115,7 @@ function Accounts() {
     }
   };
 
-  const tableData = accountsTableData(rows, handleOpenDrawer);
+  const tableData = accountsTableData(rows, handleOpenDrawer, handleDelete);
 
   return (
     <DashboardLayout>
@@ -191,7 +211,7 @@ function Accounts() {
 
           <Grid container spacing={2}>
             {Object.keys(editedAccount)
-              .filter((key) => !["id", "created_at", "last_updated"].includes(key))
+              .filter((key) => !["id", "created_at", "last_updated", "leverage", "risk_percentage"].includes(key))
               .map((key) => {
                 let inputField;
 

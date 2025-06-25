@@ -437,34 +437,47 @@ class BybitClient:
             logger.error(f"❌ Error placing entry and TP orders: {e}")
             raise
 
-    def cancel_all_orders(self, symbol, category="linear"):
+    def cancel_all_orders(self, symbol, category="linear", settleCoin="USDT"):
         """
-        Cancels all open orders for a specific symbol and category.
-        
+        Cancels all open orders for a specific symbol or across all symbols in a category.
+
         Args:
-            symbol (str): The trading pair (e.g., BTCUSDT).
-            category (str): The category of the market (e.g., "linear", "spot").
-        
+            symbol (str | None): Trading pair (e.g., BTCUSDT) or None to cancel all.
+            category (str): Market category (e.g., "linear", "spot").
+            settleCoin (str): Coin used to settle trades (e.g., "USDT").
+
         Returns:
-            dict: The response from the Bybit API.
+            dict: Response from the Bybit API.
         """
+        settle_coin = settleCoin.upper()
+
+        if not symbol or not symbol.strip():
+            symbol = None
+            logger.info(f"⚠️ No symbol provided. Will cancel *all* open orders in category '{category}' and settleCoin '{settle_coin}'")
+        else:
+            logger.info(f"🔁 Canceling all open orders for symbol '{symbol}' in category '{category}' and settleCoin '{settle_coin}'")
+
         try:
-            logger.info(f"Canceling all open orders for {symbol} in category {category}...")
             response = self.session.cancel_all_orders(
                 category=category,
-                symbol=symbol
+                symbol=symbol,
+                settle_coin=settle_coin
             )
+
             if response.get("retCode") == 0:
-                logger.info(f"✅ Successfully canceled all orders for {symbol}: {response}")
+                action_scope = f"symbol '{symbol}'" if symbol else "all symbols"
+                logger.info(f"✅ Successfully canceled open orders for {action_scope}: {response}")
             else:
-                logger.error(f"❌ Failed to cancel orders for {symbol}: {response.get('retMsg', 'Unknown error')}")
+                logger.error(f"❌ Failed to cancel orders for symbol '{symbol or 'ALL'}': {response.get('retMsg', 'Unknown error')}")
+
             return response
+
         except Exception as e:
-            logger.error(f"❌ Error canceling orders for {symbol}: {e}")
+            logger.error(f"❌ Exception occurred while canceling orders for symbol '{symbol or 'ALL'}': {e}")
             raise
 
 
-    def get_position_info(self, symbol, category="linear"):
+    def get_position_info(self, symbol, category="linear", settleCoin="USDT"):
         """
         Fetches the open position information for a specific symbol.
 
@@ -475,11 +488,16 @@ class BybitClient:
         Returns:
             dict: A dictionary containing position details, or an empty dictionary if no position is found.
         """
+        if symbol is None or not symbol.strip():
+            symbol=None
+            settle_coin = settleCoin.upper()
+            
         try:
             logger.info(f"Fetching position info for {symbol} in category {category}...")
             response = self.session.get_positions(
                 category=category,
-                symbol=symbol
+                symbol=symbol,
+                settleCoin= settle_coin
             )
             if response.get("retCode") == 0:
                 positions = response.get("result", {}).get("list", [])

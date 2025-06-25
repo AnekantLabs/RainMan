@@ -32,17 +32,19 @@ def insert_trade(trade_data):
     finally:
         session.close()
 
-# ✅ New: Fetch active accounts
 def get_active_accounts():
     """
-    Fetch all active accounts (where is_activate == True) from the accounts table.
-    
+    Fetch all active and non-deleted accounts from the accounts table.
+
     Returns:
         A dict in the format {account_name: {api_key: ..., api_secret: ...}, ...}
     """
     session = SessionLocal()
     try:
-        query = select(accounts_table).where(accounts_table.c.is_activate == True)
+        query = select(accounts_table).where(
+            accounts_table.c.is_activate == True,
+            accounts_table.c.is_deleted == False
+        )
         result = session.execute(query).mappings().fetchall()
         accounts_data = {
             row["account_name"]: {

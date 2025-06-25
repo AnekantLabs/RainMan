@@ -38,21 +38,21 @@ function Dashboard() {
   const [categoryBar, setCategoryBar] = useState({ labels: [], datasets: [] });
   const [accountBarData, setAccountBarData] = useState({ labels: [], datasets: [] });
 
-  useEffect(() => {
-    const fetchAndProcessTrades = () => {
-      axios.get(`${BACKEND_BASE_URL}/api/v1/trades`)
-        .then((res) => {
-          const data = res.data;
-          setTrades(data);
-          processStats(data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Failed to fetch trades:", err);
-          setLoading(false);
-        });
-    };
+  const fetchAndProcessTrades = () => {
+    axios.get(`${BACKEND_BASE_URL}/api/v1/trades`)
+      .then((res) => {
+        const data = res.data;
+        setTrades(data);
+        processStats(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch trades:", err);
+        setLoading(false);
+      });
+  };
 
+  useEffect(() => {
     fetchAndProcessTrades();
     const interval = setInterval(fetchAndProcessTrades, 60000);
     return () => clearInterval(interval);
@@ -191,7 +191,7 @@ function Dashboard() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
+      <DashboardNavbar refreshDashboard={fetchAndProcessTrades}/>
       <MDBox py={3}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={3}>
@@ -211,46 +211,53 @@ function Dashboard() {
           </Grid>
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                icon="leaderboard"
-                title="Total Loss"
-                count={`$${stats.totalLoss}`}
-                percentage={{
-                  color: "error",
-                  amount: "",
-                  label: "Closed Losses Across All Accounts – Lifetime Total",
-                }}
-              />
+            <ComplexStatisticsCard
+              icon="leaderboard"
+              title="Total Loss"
+              count={<span style={{ color: "#f44336" }}>${stats.totalLoss}</span>}
+              percentage={{
+                color: "error",
+                amount: "",
+                label: "Closed Losses Across All Accounts – Lifetime Total",
+              }}
+            />
+
             </MDBox>
           </Grid>
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="success"
-                icon="store"
-                title="Profit"
-                count={`$${stats.totalProfit}`}
-                percentage={{
-                  color: "success",
-                  amount: "",
-                  label: "Closed Profits Across All Accounts – Lifetime Total",
-                }}
-              />
+            <ComplexStatisticsCard
+              color="success"
+              icon="store"
+              title="Profit"
+              count={<span style={{ color: "#4caf50" }}>${stats.totalProfit}</span>}
+              percentage={{
+                color: "success",
+                amount: "",
+                label: "Closed Profits Across All Accounts – Lifetime Total",
+              }}
+            />
+
             </MDBox>
           </Grid>
           <Grid item xs={12} md={6} lg={2.9}>
             <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="success"
-                icon="paid"
-                title="Total PnL"
-                count={`$${totalPnl}`}
-                percentage={{
-                  color: totalPnl >= 0 ? "success" : "error",
-                  amount: "",
-                  label: "PnL Across All Accounts – Lifetime Total",
-                }}
-              />
+            <ComplexStatisticsCard
+              color="success"
+              icon="paid"
+              title="Total PnL"
+              count={
+                <span style={{ color: totalPnl >= 0 ? "#4caf50" : "#f44336" }}>
+                  ${totalPnl}
+                </span>
+              }
+              percentage={{
+                color: totalPnl >= 0 ? "success" : "error",
+                amount: "",
+                label: "PnL Across All Accounts – Lifetime Total",
+              }}
+            />
+
             </MDBox>
           </Grid>
         </Grid>

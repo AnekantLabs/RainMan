@@ -49,7 +49,7 @@ function RestartStrategyButton() {
         >
           {loading ? (
             <>
-              <CircularProgress size={8} sx={{ color: "white", mr: -1 }} />
+              <CircularProgress size={1} sx={{ color: "white", mr: -1 }} />
               Restarting
             </>
           ) : (

@@ -489,20 +489,20 @@ class BybitClient:
             dict: A dictionary containing position details, or an empty dictionary if no position is found.
         """
         if symbol is None or not symbol.strip():
-            symbol=None
-            settle_coin = settleCoin.upper()
-            
+            symbol = None
+
+        settle_coin = settleCoin.upper()
+
         try:
             logger.info(f"Fetching position info for {symbol} in category {category}...")
             response = self.session.get_positions(
                 category=category,
                 symbol=symbol,
-                settleCoin= settle_coin
+                settleCoin=settle_coin
             )
             if response.get("retCode") == 0:
                 positions = response.get("result", {}).get("list", [])
                 if positions:
-                    # Assuming the first position in the list is the relevant one
                     position = positions[0]
                     logger.info(f"✅ Position info for {symbol}: {position}")
                     return position
@@ -514,7 +514,8 @@ class BybitClient:
                 return {}
         except Exception as e:
             logger.error(f"❌ Error fetching position info for {symbol}: {e}")
-            raise 
+            raise
+
 
     # function to fetch the UID of the main account
     def get_acc_uid(self):

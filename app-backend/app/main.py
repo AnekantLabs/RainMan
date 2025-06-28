@@ -23,11 +23,11 @@ app.add_middleware(
 # Create tables in the database
 Base.metadata.create_all(bind=engine)
 
-app.include_router(accounts.acc_router, prefix="/api/v1")
-app.include_router(trades.trade_router, prefix="/api/v1")
-app.include_router(alerts.alert_router, prefix="/api/v1")
-app.include_router(users.user_router, prefix="/api/v1")
-app.include_router(auth.auth_router, prefix="/api/v1")
+app.include_router(accounts.acc_router, prefix="/v1")
+app.include_router(trades.trade_router, prefix="/v1")
+app.include_router(alerts.alert_router, prefix="/v1")
+app.include_router(users.user_router, prefix="/v1")
+app.include_router(auth.auth_router, prefix="/v1")
 
 
 @app.on_event("startup")

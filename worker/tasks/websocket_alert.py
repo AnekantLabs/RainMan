@@ -24,7 +24,6 @@ from db_session import get_active_accounts
 from logging_event import get_logger
 
 logger = get_logger()
-# logger = logging.getLogger(__name__)
 
 # --- Insert trade to DB ---
 def insert_trade_raw(trade_data):
@@ -76,6 +75,7 @@ class WebSocketConnectionManager:
         self._active_connections: Dict[str, Dict[str, Any]] = {}
         self._transfer_threshold = Decimal('5.00')
         self._safety_buffer = Decimal('0.95')
+        self._shutdown_event = threading.Event()
 
     @property
     def active_connections(self):
@@ -92,6 +92,18 @@ class WebSocketConnectionManager:
             "api_key": conn.get("api_key"),
             "api_secret": conn.get("api_secret")
         }
+
+    def shutdown_connections(self):
+        """Gracefully shutdown all connections"""
+        self._shutdown_event.set()
+        for subaccount_name, conn in self._active_connections.items():
+            try:
+                if conn.get("ws"):
+                    conn["ws"].exit()
+                conn["connected"] = False
+            except Exception as e:
+                logger.error(f"Error shutting down connection for {subaccount_name}: {e}")
+        self._active_connections.clear()
 
 
 # --- Transfer Manager ---
@@ -155,7 +167,13 @@ class MessageHandler:
             transfer_bal = self._safe_decimal(client.get_transferable_amount(["USDT"]).get("USDT", 0))
             amt = transfer_bal * self.connection_manager._safety_buffer if upl != 0 else transfer_bal
             if amt > self.connection_manager._transfer_threshold:
-                self.transfer_manager.perform_internal_transfer(subaccount_name, MAIN_ACCOUNT, amt)
+                # Run transfer in background to avoid blocking
+                transfer_thread = threading.Thread(
+                    target=self.transfer_manager.perform_internal_transfer,
+                    args=(subaccount_name, MAIN_ACCOUNT, amt),
+                    daemon=True
+                )
+                transfer_thread.start()
         except Exception as e:
             logger.error(f"Wallet msg error for {subaccount_name}: {e}", exc_info=True)
 
@@ -184,7 +202,13 @@ class MessageHandler:
                 "updated_time": self._convert_time(order.get("updatedTime")),
                 "raw_event": order,
             }
-            insert_trade_raw(data)
+            # Run database insertion in background to avoid blocking
+            db_thread = threading.Thread(
+                target=insert_trade_raw,
+                args=(data,),
+                daemon=True
+            )
+            db_thread.start()
         except Exception as e:
             logger.error(f"Trade insert error: {e}", exc_info=True)
 
@@ -207,12 +231,22 @@ def _establish_connection(subaccount_name: str, credentials: Dict[str, str]) -> 
 
         def wallet_cb(msg):
             if msg.get("op") != "pong":
-                message_handler.handle_wallet_message(msg, subaccount_name)
+                # Handle message asynchronously to avoid blocking
+                threading.Thread(
+                    target=message_handler.handle_wallet_message,
+                    args=(msg, subaccount_name),
+                    daemon=True
+                ).start()
 
         def order_cb(msg):
             if msg.get("op") != "pong":
                 for order in msg.get("data", []):
-                    message_handler.handle_private_orders_message(order, subaccount_name)
+                    # Handle message asynchronously to avoid blocking
+                    threading.Thread(
+                        target=message_handler.handle_private_orders_message,
+                        args=(order, subaccount_name),
+                        daemon=True
+                    ).start()
 
         ws.wallet_stream(callback=wallet_cb)
         ws.order_stream(callback=order_cb)
@@ -225,46 +259,119 @@ def _establish_connection(subaccount_name: str, credentials: Dict[str, str]) -> 
         }
 
         def send_ping():
-            while True:
+            while not connection_manager._shutdown_event.is_set():
                 try:
                     if not connection_manager.is_connected(subaccount_name):
                         break
                     if ws.ws and ws.ws.sock and ws.ws.sock.connected:
                         ws.ws.send(json.dumps({"req_id": "ping_heartbeat", "op": "ping"}))
                         logger.info(f"Sent ping to {subaccount_name}")
-                    sleep(20)
+                    # Use shutdown event with timeout instead of sleep
+                    if connection_manager._shutdown_event.wait(20):
+                        break
                 except Exception as e:
                     logger.error(f"Ping failed for {subaccount_name}: {e}", exc_info=True)
                     break
 
-        threading.Thread(target=send_ping, daemon=True).start()
+        ping_thread = threading.Thread(target=send_ping, daemon=True)
+        ping_thread.start()
+        connection_manager.active_connections[subaccount_name]["ping_thread"] = ping_thread
+        
         return True
     except Exception as e:
         logger.error(f"WebSocket error for {subaccount_name}: {e}", exc_info=True)
         return False
 
 
-def _maintain_connections():
-    logger.info("Maintaining WebSocket connections")
-    while True:
-        sleep(30)
-
-
 # --- Celery Tasks ---
-@celery_app.task(name="tasks.connect_websocket")
-def connect_websocket_task(accounts_data: Dict[str, Dict[str, str]]):
-    for name, creds in accounts_data.items():
-        _establish_connection(name, creds)
-    _maintain_connections()
-
-
-@celery_app.task(name="tasks.connect_websocket_startup")
-def connect_websocket_startup():
+@celery_app.task(name="tasks.connect_websocket", bind=True)
+def connect_websocket_task(self, accounts_data: Dict[str, Dict[str, str]]):
+    """
+    Connect WebSocket for accounts and maintain connections.
+    This task will run indefinitely until terminated.
+    """
     try:
+        logger.info(f"Starting WebSocket connections for {len(accounts_data)} accounts")
+        
+        # Establish connections for all accounts
+        connected_accounts = []
+        for name, creds in accounts_data.items():
+            if _establish_connection(name, creds):
+                connected_accounts.append(name)
+                logger.info(f"Successfully connected WebSocket for {name}")
+            else:
+                logger.error(f"Failed to connect WebSocket for {name}")
+        
+        if not connected_accounts:
+            logger.error("No WebSocket connections established")
+            return {"status": "failed", "message": "No connections established"}
+        
+        logger.info(f"WebSocket connections established for: {connected_accounts}")
+        
+        # Monitor connections with proper shutdown handling
+        check_interval = 30
+        while not connection_manager._shutdown_event.is_set():
+            try:
+                # Check connection health
+                for account_name in connected_accounts:
+                    if not connection_manager.is_connected(account_name):
+                        logger.warning(f"Connection lost for {account_name}, attempting reconnect")
+                        creds = accounts_data.get(account_name)
+                        if creds:
+                            _establish_connection(account_name, creds)
+                
+                # Wait with ability to be interrupted
+                if connection_manager._shutdown_event.wait(check_interval):
+                    break
+                    
+            except Exception as e:
+                logger.error(f"Error in connection monitoring: {e}", exc_info=True)
+                if connection_manager._shutdown_event.wait(5):
+                    break
+        
+        logger.info("WebSocket task shutting down gracefully")
+        return {"status": "completed", "connected_accounts": connected_accounts}
+        
+    except Exception as e:
+        logger.error(f"WebSocket task error: {e}", exc_info=True)
+        return {"status": "error", "message": str(e)}
+    finally:
+        # Cleanup connections
+        connection_manager.shutdown_connections()
+
+
+@celery_app.task(name="tasks.connect_websocket_startup", bind=True)
+def connect_websocket_startup(self):
+    """
+    Startup task to initialize WebSocket connections.
+    This task completes quickly and delegates long-running work to connect_websocket_task.
+    """
+    try:
+        logger.info("Starting WebSocket initialization")
         accounts_data = get_active_accounts()
-        if accounts_data:
-            connect_websocket_task(accounts_data)
-        else:
+        
+        if not accounts_data:
             logger.warning("No active accounts found")
+            return {"status": "no_accounts", "message": "No active accounts found"}
+        
+        logger.info(f"Found {len(accounts_data)} active accounts")
+        
+        # Start the long-running WebSocket task
+        result = connect_websocket_task.delay(accounts_data)
+        
+        return {
+            "status": "initiated", 
+            "accounts_count": len(accounts_data),
+            "task_id": result.id
+        }
+        
     except Exception as e:
         logger.error(f"Startup error: {e}", exc_info=True)
+        return {"status": "error", "message": str(e)}
+
+
+# --- Shutdown handler for graceful cleanup ---
+def shutdown_handler():
+    """Call this function to gracefully shutdown all connections"""
+    logger.info("Initiating graceful shutdown")
+    connection_manager.shutdown_connections()

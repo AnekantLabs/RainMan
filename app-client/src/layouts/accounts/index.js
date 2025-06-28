@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -9,17 +8,18 @@ import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import Modal from "@mui/material/Modal";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { MenuItem } from "@mui/material";
+
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
-
-// Import Data Function
 import accountsTableData from "layouts/accounts/data/accountsTableData";
 import axiosInstance from "utils/axios";
-import { MenuItem } from "@mui/material";
+
 
 function Accounts() {
   const [rows, setRows] = useState([]);
@@ -28,11 +28,10 @@ function Accounts() {
   const [editedAccount, setEditedAccount] = useState({});
   const [isNew, setIsNew] = useState(false);
 
-  // fetch the data from the backend when the component is rendered
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const response = await axiosInstance.get("/accounts/get-accounts");
+        const response = await axiosInstance.get("api/v1/accounts/get-accounts");
         setRows(response.data);
       } catch (error) {
         console.log(`Error fetching Accounts ${error}`);
@@ -41,21 +40,18 @@ function Accounts() {
     if (!drawerOpen) {
       fetchAccounts(); // Re-fetch data when drawer closes
     }
-  }, [drawerOpen]); // keep the dependency array empty, only load when the whole component renders
+  }, [drawerOpen]);
 
   const handleOpenDrawer = (account = null, isNew = false) => {
-    // selected account is the account to be edited
     setSelectedAccount(account);
     setEditedAccount(
       account
         ? { ...account }
         : {
             account_name: "",
-            role: "",
+            role: "main",  // ✅ Explicit default
             api_key: "",
             api_secret: "",
-            risk_percentage: "",
-            leverage: "",
             is_activate: true,
           }
     );
@@ -67,18 +63,32 @@ function Accounts() {
     setDrawerOpen(false);
   };
 
+  const handleDelete = async (accountId) => {
+    if (window.confirm("Are you sure you want to delete this account? This action cannot be undone.")) {
+      try {
+        await axiosInstance.delete(`api/v1/accounts/delete-account/${accountId}`);
+        // Remove the deleted account from the state
+        setRows(rows.filter(account => account.id !== accountId));
+        console.log("Account deleted successfully");
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        alert("Failed to delete account. Please try again.");
+      }
+    }
+  };
+
   const handleSave = async () => {
     try {
+      // Add default values for leverage and risk_percentage before sending to backend
+      const accountData = {
+        ...editedAccount,
+        leverage: 0,
+        risk_percentage: 0,
+      };
+
       let updatedRows;
       if (isNew) {
-        // Add a new account via API
-        const response = await axiosInstance.post(
-          "/accounts/create-account",
-          editedAccount
-        );
-        console.log(`New Account: ${JSON.stringify(response.data)}`);
-
-        // Ensure "is_activate" is stored as boolean
+        const response = await axiosInstance.post("api/v1/accounts/create-account", accountData);
         updatedRows = [
           ...rows,
           {
@@ -87,13 +97,7 @@ function Accounts() {
           },
         ];
       } else {
-        // Update an existing account via API
-        await axiosInstance.put(
-          `/accounts/update-account/${selectedAccount.id}`,
-          editedAccount
-        );
-        console.log(`Edited Account: ${JSON.stringify(editedAccount)}`);
-
+        await axiosInstance.put(`api/v1/accounts/update-account/${selectedAccount.id}`, accountData);
         updatedRows = rows.map((acc) =>
           acc.id === selectedAccount.id
             ? {
@@ -104,14 +108,14 @@ function Accounts() {
         );
       }
 
-      setRows(updatedRows); // Correctly update the state
+      setRows(updatedRows);
       setDrawerOpen(false);
     } catch (error) {
       console.error("Error saving account:", error);
     }
   };
 
-  const tableData = accountsTableData(rows, handleOpenDrawer);
+  const tableData = accountsTableData(rows, handleOpenDrawer, handleDelete);
 
   return (
     <DashboardLayout>
@@ -155,19 +159,32 @@ function Accounts() {
             </Card>
           </Grid>
         </Grid>
-        <Button
-          variant="contained"
-          color="primary"
+
+        {/* Enhanced Add Button */}
+        <MDButton
+          variant="gradient"
+          color="info"
           startIcon={<AddIcon />}
-          sx={{ marginTop: 2 }}
+          sx={{
+            mt: 4,
+            px: 4,
+            py: 1.5,
+            fontSize: "1rem",
+            fontWeight: "bold",
+            borderRadius: "8px",
+            transition: "all 0.2s ease-in-out",
+            "&:hover": {
+              transform: "scale(1.03)",
+            },
+          }}
           onClick={() => handleOpenDrawer(null, true)}
         >
-          Add New Account
-        </Button>
+           Add New Account
+        </MDButton>
       </MDBox>
       <Footer />
 
-      {/* Side Drawer for Account Details */}
+      {/* Modal Drawer */}
       <Modal open={drawerOpen} onClose={handleCloseDrawer}>
         <MDBox
           sx={{
@@ -183,12 +200,7 @@ function Accounts() {
             color: "text.primary",
           }}
         >
-          <MDBox
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
+          <MDBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <MDTypography variant="h5">
               {isNew ? "Add New Account" : "Edit Account"}
             </MDTypography>
@@ -199,14 +211,11 @@ function Accounts() {
 
           <Grid container spacing={2}>
             {Object.keys(editedAccount)
-              .filter(
-                (key) => !["id", "created_at", "last_updated"].includes(key)
-              )
+              .filter((key) => !["id", "created_at", "last_updated", "leverage", "risk_percentage"].includes(key))
               .map((key) => {
                 let inputField;
 
                 if (key === "is_activate") {
-                  // Dropdown for "Is Activate"
                   inputField = (
                     <TextField
                       select
@@ -237,7 +246,6 @@ function Accounts() {
                     </TextField>
                   );
                 } else if (key === "role") {
-                  // Dropdown for "Role"
                   inputField = (
                     <TextField
                       select
@@ -268,11 +276,11 @@ function Accounts() {
                     </TextField>
                   );
                 } else {
-                  // Regular TextField for other inputs
                   inputField = (
                     <TextField
                       fullWidth
                       label={key.replace("_", " ")}
+                      type={["api_key", "api_secret"].includes(key) ? "password" : "text"}
                       value={editedAccount[key] || ""}
                       onChange={(e) =>
                         setEditedAccount({
@@ -298,13 +306,29 @@ function Accounts() {
                 );
               })}
           </Grid>
+
           <Button
             variant="contained"
-            color="primary"
-            sx={{ mt: 3, width: "100%" }}
             onClick={handleSave}
+            sx={{
+              mt: 3,
+              width: "100%",
+              height: "50px",
+              backgroundColor: "#1A73E8", // Brighter blue
+              color: "#FFFFFF", // White text for contrast
+              fontWeight: "bold",
+              fontSize: "1rem",
+              textTransform: "none",
+              borderRadius: "8px",
+              boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.2)",
+              transition: "all 0.2s ease-in-out",
+              '&:hover': {
+                backgroundColor: "#1558b0", // Darker on hover
+                transform: "scale(1.02)",
+              },
+            }}
           >
-            {isNew ? "Add Account" : "Save Changes"}
+            {isNew ? "➕ Add Account" : "💾 Save Changes"}
           </Button>
         </MDBox>
       </Modal>

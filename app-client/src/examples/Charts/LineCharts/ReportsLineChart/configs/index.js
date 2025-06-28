@@ -1,45 +1,26 @@
-/**
-=========================================================
-* Rainman React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/nextjs-material-dashboard-pro
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 function configs(labels, datasets) {
   return {
     data: {
       labels,
-      datasets: [
-        {
-          label: datasets.label,
-          tension: 0,
-          pointRadius: 5,
-          pointBorderColor: "transparent",
-          pointBackgroundColor: "rgba(255, 255, 255, .8)",
-          borderColor: "rgba(255, 255, 255, .8)",
-          borderWidth: 4,
-          backgroundColor: "transparent",
-          fill: true,
-          data: datasets.data,
-          maxBarThickness: 6,
-        },
-      ],
+      datasets: datasets.map((ds) => ({
+        label: ds.label,
+        tension: 0,
+        pointRadius: 5,
+        pointBorderColor: "transparent",
+        pointBackgroundColor: "rgba(255, 255, 255, .8)",
+        borderColor: "rgba(255, 255, 255, .8)",
+        borderWidth: 4,
+        backgroundColor: "transparent",
+        fill: true,
+        data: ds.data,
+        maxBarThickness: 6,
+      })),
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: false,
-        },
+        legend: { display: false },
       },
       interaction: {
         intersect: false,

@@ -4,8 +4,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     API_V1_STR: str
     DATABASE_URL: str
-    SECRET_KEY: str
+    JWT_SECRET_KEY: str
     ENVIRONMENT: str
+    BASE_URL: str
 
     class Config:
         env_file = ".env"

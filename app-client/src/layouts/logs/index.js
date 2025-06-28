@@ -1,28 +1,67 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
+import { useTheme } from "@mui/material/styles";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import ReactJson from "react-json-view";
+import { useMaterialUIController } from "context";
+
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
 
 function Logs() {
-  const [logData, setLogData] = useState({
-    account: "sub_3",
-    action: "buy",
-    leverage: "10",
-    symbol: "ETHUSDT",
-    entry_price: "30000",
-    stop_loss: "29000",
-    stop_loss_percentage: "10",
-    tps: ["31000", "32000", "33000", "34000", "35000", "36000"],
-    tp_sizes: ["10", "10", "10", "10", "10", "10"],
-    risk_percentage: "1",
-    commission_percentage: "0.02",
-    margin_type: "cross",
-  });
+  const theme = useTheme();
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
+  
+  const [logs, setLogs] = useState([]);
+  const eventSourceRef = useRef(null);
+
+  useEffect(() => {
+    const source = new EventSource(`${BACKEND_BASE_URL}/api/v1/alerts/logs/stream`);
+    eventSourceRef.current = source;
+
+    source.addEventListener("log", (event) => {
+      try {
+        const log = JSON.parse(event.data);
+        setLogs((prevLogs) => {
+          const updated = [...prevLogs, log];  // <-- Append to end (oldest at top)
+          return updated.slice(-100);          // Keep max 100 logs
+        });
+      } catch (e) {
+        console.error("Invalid JSON log:", e);
+      }
+    });
+
+    source.onerror = (error) => {
+      console.error("SSE error:", error);
+      source.close();
+    };
+
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        console.log("🔌 SSE connection closed.");
+      }
+    };
+  }, []);
+
+  const getChipColor = (level) => {
+    switch (level) {
+      case "ERROR":
+        return "error";
+      case "WARNING":
+        return "warning";
+      case "DEBUG":
+        return "secondary";
+      default:
+        return "info";
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -34,10 +73,12 @@ function Logs() {
               sx={{
                 boxShadow: 2,
                 borderRadius: "12px",
-                backgroundColor: "white",
+                backgroundColor: darkMode 
+                  ? theme.palette.background.card 
+                  : "white",
               }}
             >
-              {/* Header with Dashboard Theme Colors */}
+              {/* Header */}
               <MDBox
                 mx={2}
                 mt={-3}
@@ -49,37 +90,80 @@ function Logs() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  Logs Viewer
+                  Logs Viewer (Live)
                 </MDTypography>
               </MDBox>
 
-              {/* JSON Viewer Box */}
+              {/* Logs Output */}
               <MDBox
                 p={3}
                 sx={{
-                  bgcolor: "white", // Light background
+                  bgcolor: darkMode 
+                    ? theme.palette.background.default 
+                    : "#f9fafc",
                   borderRadius: "12px",
                   overflow: "auto",
-                  maxHeight: "500px",
-                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)", // Soft shadow
-                  border: "1px solid #ddd", // Subtle border for clarity
+                  maxHeight: "75vh",
+                  fontFamily: "monospace",
+                  fontSize: "12px",
+                  lineHeight: "1.5",
                 }}
               >
-                <ReactJson
-                  src={logData}
-                  theme="rjv-default" // Lighter theme
-                  onEdit={(edit) => setLogData(edit.updated_src)}
-                  onAdd={(add) => setLogData(add.updated_src)}
-                  onDelete={(del) => setLogData(del.updated_src)}
-                  collapsed={false}
-                  enableClipboard={true}
-                  displayDataTypes={false}
-                  style={{
-                    fontSize: "12px", // Same as other dashboard text
-                    padding: "12px",
-                    borderRadius: "8px",
-                  }}
-                />
+                {logs.length === 0 ? (
+                  <MDTypography 
+                    variant="body2" 
+                    color={darkMode ? "white" : "textSecondary"}
+                  >
+                    Waiting for logs...
+                  </MDTypography>
+                ) : (
+                  logs.map((log, idx) => (
+                    <MDBox
+                      key={idx}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      sx={{
+                        borderBottom: darkMode 
+                          ? "1px solid #444" 
+                          : "1px solid #eee",
+                        paddingY: "6px",
+                        "&:hover": {
+                          backgroundColor: darkMode 
+                            ? "rgba(255, 255, 255, 0.08)" 
+                            : "#eef2f6",
+                        },
+                      }}
+                    >
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                        <Chip
+                          label={log.level}
+                          size="small"
+                          color={getChipColor(log.level)}
+                          variant="filled"
+                        />
+                        <MDTypography 
+                          variant="caption" 
+                          color={darkMode ? "white" : "text"} 
+                          fontWeight="medium"
+                        >
+                          {log.timestamp}
+                        </MDTypography>
+                      </Stack>
+                      <MDTypography
+                        variant="caption"
+                        color={darkMode ? "white" : "text"}
+                        sx={{
+                          ml: 2,
+                          flex: 1,
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {log.message}
+                      </MDTypography>
+                    </MDBox>
+                  ))
+                )}
               </MDBox>
             </Card>
           </Grid>
